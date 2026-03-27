@@ -1,0 +1,776 @@
+{
+  "name": "SDP Serice",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ed55fbf8-4560-4dd9-b330-bc4f0cebd15b",
+              "leftValue": "={{ $json.isTextMessage }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "9b1f9a9c-05e6-4f50-80cb-cbac1cf7f439",
+      "name": "IF_Is_Text_Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $json.body?.events?.[0] ?? $json.events?.[0] ?? {};\n\nconst isTextMessage =\n  event.type === 'message' &&\n  event.message?.type === 'text';\n\nconst text = isTextMessage ? (event.message.text ?? '').trim() : '';\n\nreturn [\n  {\n    json: {\n      eventType: event.type ?? '',\n      messageType: event.message?.type ?? '',\n      isTextMessage,\n\n      userId: event.source?.userId ?? '',\n      replyToken: event.replyToken ?? '',\n\n      text,\n      textNormalized: text.toLowerCase(),\n\n      timestamp: event.timestamp ?? Date.now()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d7129822-41f4-440a-aa2f-f3856ab13979",
+      "name": "Code_Parse_LINE_Event"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d5b9c957-39f2-4ce3-b724-2af4f7ca94b3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c7d89828-3d43-481b-960d-311cc48bde64",
+      "name": "Webhook_LINE_In",
+      "webhookId": "d5b9c957-39f2-4ce3-b724-2af4f7ca94b3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "09b4d10b-d8e4-4f4a-a97f-e26531ee4e38",
+              "leftValue": "={{ $('IF_Is_Text_Message').item.json.textNormalized }}",
+              "rightValue": "ติดตามงาน",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        -128
+      ],
+      "id": "695e653a-a171-4c93-836b-1448ae0ffe95",
+      "name": "IF_Is_Command_Track"
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "5NsLXyJzU9a0Mm5d",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/Z20Vj2oXMww5RLWb/datatables/5NsLXyJzU9a0Mm5d"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "track_ticket"
+            },
+            {
+              "keyName": "currentStep",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        -320
+      ],
+      "id": "0c10b846-7aa9-40ac-893e-b59b73280764",
+      "name": "DataTable_If_Track_Session_Exists"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      userId: $json.userId,\n      currentMenu: 'track_ticket',\n      currentStep: 'ask_ticket_id',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 นาที\n      replyToken: $json.replyToken\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -320
+      ],
+      "id": "7b981e47-1985-49a3-a9f7-276963638a0d",
+      "name": "Code_Prepare_Track_Session"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "5NsLXyJzU9a0Mm5d",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/Z20Vj2oXMww5RLWb/datatables/5NsLXyJzU9a0Mm5d"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "userId": "={{ $('IF_Is_Text_Message').item.json.userId }}",
+            "currentMenu": "={{ $json.currentMenu }}",
+            "currentStep": "={{ $json.currentStep }}",
+            "status": "={{ $json.status }}",
+            "payloadJson": "={{ $json.payloadJson }}",
+            "lastUserText": "={{ $json.lastUserText }}",
+            "expireAt": "={{ $json.expireAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currentMenu",
+              "displayName": "currentMenu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currentStep",
+              "displayName": "currentStep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payloadJson",
+              "displayName": "payloadJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastUserText",
+              "displayName": "lastUserText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expireAt",
+              "displayName": "expireAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        -320
+      ],
+      "id": "6e03ea89-ea2d-41c3-9b62-41e3dad6fa90",
+      "name": "DataTable_Upsert_Track_Session"
+    },
+    {
+      "parameters": {
+        "messages": {
+          "values": [
+            {
+              "text": "กรุณาระบุ Ticket ID:"
+            }
+          ]
+        }
+      },
+      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        -320
+      ],
+      "id": "56f8759b-7648-4e5e-8eee-1b108a4072bb",
+      "name": "Line_Reply_Ask_Ticket_ID",
+      "credentials": {
+        "lineMessagingApi": {
+          "id": "oapCoXEQdpYpn2O8",
+          "name": "Line Messaging account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticketId = ($json.text || '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n      ticketId\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        176
+      ],
+      "id": "5223bdb2-75b2-488f-b3ad-f24bda3d7a3a",
+      "name": "Code_Handle_Ticket_Input"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "5NsLXyJzU9a0Mm5d",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/Z20Vj2oXMww5RLWb/datatables/5NsLXyJzU9a0Mm5d"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -560
+      ],
+      "id": "7a40820d-e97d-413b-9234-0a395ba3bffc",
+      "name": "DataTable_Get_Active_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e772ad11-c13c-41ac-80ad-7292ca96f6ef",
+              "leftValue": "={{ $json.currentMenu }}",
+              "rightValue": "track_ticket",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "31640f73-8dba-42f7-8830-e40dc8c46cb9",
+              "leftValue": "={{ $json.currentStep }}",
+              "rightValue": "ask_ticket_id",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        816,
+        -560
+      ],
+      "id": "971677fb-7c8b-4eee-9ca5-390017a04ee6",
+      "name": "IF_Has_Track_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
+        "messages": {
+          "values": [
+            {
+              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
+              "text": "รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง"
+            }
+          ]
+        }
+      },
+      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        320
+      ],
+      "id": "50f48b7e-79dc-4d6d-8b47-7246ec4de57e",
+      "name": "Line_Reply_Invalid_Ticket",
+      "credentials": {
+        "lineMessagingApi": {
+          "id": "oapCoXEQdpYpn2O8",
+          "name": "Line Messaging account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{\"https://host.docker.internal:8080/api/v3/requests/1\"}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1584,
+        112
+      ],
+      "id": "7f294eb8-26fd-484d-906a-891aa72aa70e",
+      "name": "HTTP_Get_Ticket_Status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "P1srxQC0o0I34AkW",
+          "name": "Header Auth SDP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticketId = ($json.ticketId || '').trim();\n\n// ปรับ regex ให้ตรงกับระบบจริงของคุณ\nconst isTicketFormatOk = /^[A-Za-z0-9-]+$/.test(ticketId);\n\nreturn [\n  {\n    json: {\n      ...$json,\n      isTicketFormatOk\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        176
+      ],
+      "id": "9f6029e5-7c1e-4584-9633-007b97e82ddc",
+      "name": "Code_Validate_Ticket_ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "91ee5ba4-d7d4-4adb-a90c-65c6791c19da",
+              "leftValue": "={{ $json.isTicketFormatOk }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1312,
+        176
+      ],
+      "id": "3b8b2daa-6745-4d7b-ba9b-21ab1f6e5922",
+      "name": "IF_Ticket_Format_OK"
+    },
+    {
+      "parameters": {
+        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
+        "messages": {
+          "values": [
+            {
+              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
+              "text": "=ผลการติดตามงาน\n\nTicket ID: {{ $json.request.requester.id }}\nหัวข้อ: {{ $json.request.subject }}\nสถานะ: {{ $json.request.status }}\nผู้รับผิดชอบ: \nอัปเดตล่าสุด: {{ $json.request.last_updated_time }}"
+            }
+          ]
+        }
+      },
+      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        112
+      ],
+      "id": "e0c68ca3-f29a-4936-bdb9-3253d895d4c5",
+      "name": "Line_Reply_Ticket_Status",
+      "credentials": {
+        "lineMessagingApi": {
+          "id": "oapCoXEQdpYpn2O8",
+          "name": "Line Messaging account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "5NsLXyJzU9a0Mm5d",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/Z20Vj2oXMww5RLWb/datatables/5NsLXyJzU9a0Mm5d"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $('IF_Is_Text_Message').item.json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "track_ticket"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        112
+      ],
+      "id": "c2a6bff5-0aa1-48a9-9d27-1c9da67910cb",
+      "name": "DataTable_Delete_Session"
+    },
+    {
+      "parameters": {
+        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
+        "messages": {
+          "values": [
+            {
+              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
+              "text": "=กรุณาเลือกเมนู\n\n- ติดตามงาน\n\nพิมพ์ \"ติดตามงาน\" เพื่อเริ่มต้น"
+            }
+          ]
+        }
+      },
+      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -128
+      ],
+      "id": "97f0c74a-9ba6-48be-b8c2-cd1ff811e44f",
+      "name": "Line_Reply_Main_Menu",
+      "credentials": {
+        "lineMessagingApi": {
+          "id": "oapCoXEQdpYpn2O8",
+          "name": "Line Messaging account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "5NsLXyJzU9a0Mm5d",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/Z20Vj2oXMww5RLWb/datatables/5NsLXyJzU9a0Mm5d"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId"
+            },
+            {
+              "keyName": "currentMenu"
+            },
+            {
+              "keyName": "currentStep"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        -128
+      ],
+      "id": "c7810fba-e4ea-45a2-aec4-9d4fc4f78ac1",
+      "name": "DataTable_If_Track_Session_Not_Exists"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF_Is_Text_Message": {
+      "main": [
+        [
+          {
+            "node": "DataTable_If_Track_Session_Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DataTable_If_Track_Session_Not_Exists",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Code_Parse_LINE_Event": {
+      "main": [
+        [
+          {
+            "node": "IF_Is_Text_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_LINE_In": {
+      "main": [
+        [
+          {
+            "node": "Code_Parse_LINE_Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Track_Session_Exists": {
+      "main": [
+        [
+          {
+            "node": "Code_Prepare_Track_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Is_Command_Track": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Line_Reply_Main_Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Prepare_Track_Session": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Upsert_Track_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Upsert_Track_Session": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Ask_Ticket_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Get_Active_Session": {
+      "main": [
+        [
+          {
+            "node": "IF_Has_Track_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Handle_Ticket_Input": {
+      "main": [
+        [
+          {
+            "node": "Code_Validate_Ticket_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Validate_Ticket_ID": {
+      "main": [
+        [
+          {
+            "node": "IF_Ticket_Format_OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Ticket_Format_OK": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Get_Ticket_Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Line_Reply_Invalid_Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Get_Ticket_Status": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Ticket_Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Line_Reply_Ticket_Status": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Delete_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Track_Session_Not_Exists": {
+      "main": [
+        [
+          {
+            "node": "IF_Is_Command_Track",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e36e58e1-bec2-4431-a355-f85d0effdd9e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bb762ce0440ce8d6e3dd0a99a04d0ade635c814e516ce41c19ebc5f3808e3a84"
+  },
+  "id": "FfXN9t52XyAQIQqM",
+  "tags": []
+}
