@@ -1,5 +1,5 @@
 {
-  "name": "SDP Serice",
+  "name": "SDP Service add solutions",
   "nodes": [
     {
       "parameters": {
@@ -28,78 +28,57 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -976,
-        720
+        -1296,
+        448
       ],
-      "id": "ff81eb31-3a19-4490-8a90-587fee47713f",
+      "id": "1833788a-7d47-4e6a-9c2e-545c905039f5",
       "name": "IF_Is_Text_Message"
     },
     {
       "parameters": {
-        "jsCode": "const event = $json.body?.events?.[0] ?? $json.events?.[0] ?? {};\n\nconst isTextMessage =\n  event.type === 'message' &&\n  event.message?.type === 'text';\n\nconst text = isTextMessage ? (event.message.text ?? '').trim() : '';\n\nreturn [\n  {\n    json: {\n      eventType: event.type ?? '',\n      messageType: event.message?.type ?? '',\n      isTextMessage,\n\n      userId: event.source?.userId ?? '',\n      replyToken: event.replyToken ?? '',\n\n      text,\n      textNormalized: text.toLowerCase(),\n\n      timestamp: event.timestamp ?? Date.now()\n    }\n  }\n];"
+        "jsCode": "const event = $json.body?.events?.[0] ?? $json.events?.[0] ?? {};\n\nconst isTextMessage =\n  event.type === 'message' &&\n  event.message?.type === 'text';\n\nconst text = isTextMessage ? (event.message.text ?? '').trim() : '';\n\nreturn [\n  {\n    json: {\n      eventType: event.type ?? '',\n      messageType: event.message?.type ?? '',\n      isTextMessage,\n\n      userId: event.source?.userId ?? '',\n      replyToken: event.replyToken ?? '',\n\n      text,\n      textNormalized: text.toLowerCase(),\n\n      quoteToken: event.message?.quoteToken ?? '',\n\n      timestamp: event.timestamp ?? Date.now()\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1184,
-        576
+        -1520,
+        448
       ],
-      "id": "0a3c40b6-9ada-4e55-bd81-92bb7762793b",
+      "id": "196a2a4f-76c3-4cf3-98fc-0dde7f8f4463",
       "name": "Code_Parse_LINE_Event"
     },
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "d5b9c957-39f2-4ce3-b724-2af4f7ca94b3",
+        "path": "1982a6d3-8356-4889-93ce-1b2267df1614",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1392,
-        576
+        -1744,
+        448
       ],
-      "id": "a529153b-e74a-41fc-a263-37c067a67453",
+      "id": "b3b6ef75-504a-428c-98b9-c1a47a4de4d0",
       "name": "Webhook_LINE_In",
-      "webhookId": "d5b9c957-39f2-4ce3-b724-2af4f7ca94b3"
+      "webhookId": "1982a6d3-8356-4889-93ce-1b2267df1614"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "09b4d10b-d8e4-4f4a-a97f-e26531ee4e38",
-              "leftValue": "={{ $json.textNormalized }}",
-              "rightValue": "ติดตามงาน",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "jsCode": "return [\n  {\n    json: {\n      userId: $json.userId,\n      currentMenu: 'track_ticket',\n      currentStep: 'ask_ticket_id',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $input.first().json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),\n      replyToken: $json.replyToken,\n      quoteToken: $json.quoteToken\n    }\n  }\n];"
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        288,
-        752
+        -400,
+        224
       ],
-      "id": "b200111e-3a26-4f50-8db0-ef40a7207e4f",
-      "name": "IF_Is_Command_Track"
+      "id": "cea268dd-b2a4-402b-8361-cfbfa8f4920f",
+      "name": "Code_Prepare_Track_Session"
     },
     {
       "parameters": {
-        "operation": "rowExists",
+        "operation": "upsert",
         "dataTableId": {
           "__rl": true,
           "value": "egRZa85H3Urgk46T",
@@ -113,48 +92,8 @@
             {
               "keyName": "userId",
               "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "track_ticket"
-            },
-            {
-              "keyName": "currentStep",
-              "keyValue": "ask_ticket_id"
             }
           ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        48,
-        560
-      ],
-      "id": "c81b3907-a091-4952-8561-cf57067566be",
-      "name": "DataTable_If_Track_Session_Exists"
-    },
-    {
-      "parameters": {
-        "jsCode": "return [\n  {\n    json: {\n      userId: $input.first().json.userId,\n      currentMenu: 'track_ticket',\n      currentStep: 'ask_ticket_id',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $input.first().json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),\n      replyToken: $input.first().json.replyToken\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        496,
-        752
-      ],
-      "id": "d607bdee-4d07-48cb-95ae-32a261a21319",
-      "name": "Code_Prepare_Track_Session"
-    },
-    {
-      "parameters": {
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -248,154 +187,24 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        704,
-        752
+        -176,
+        224
       ],
-      "id": "fd2596b6-11a4-4915-947b-266f3159479a",
+      "id": "9392ba61-b312-45f7-b0bb-52a507a176bc",
       "name": "DataTable_Upsert_Track_Session"
     },
     {
       "parameters": {
-        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
-        "messages": {
-          "values": [
-            {
-              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
-              "text": "กรุณาระบุ Ticket ID:"
-            }
-          ]
-        }
-      },
-      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
-      "typeVersion": 1,
-      "position": [
-        928,
-        752
-      ],
-      "id": "149dbaca-e5e5-468e-9216-c626056538d7",
-      "name": "Line_Reply_Ask_Ticket_ID",
-      "credentials": {
-        "lineMessagingApi": {
-          "id": "ySamoLMDrNHJJqM0",
-          "name": "Line Messaging account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const ticketId = ($json.text || '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n      ticketId\n    }\n  }\n];"
+        "jsCode": "const ticketId = ($json.text || '').trim();\nreturn [\n  {\n    json: {\n      ...$json,\n      ticketId\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        288,
-        560
+        -624,
+        832
       ],
-      "id": "aa887968-a15c-4f18-bf12-29166d160e84",
+      "id": "ab5e477d-6165-4ab2-93e8-1caf907e91f3",
       "name": "Code_Handle_Ticket_Input"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "5NsLXyJzU9a0Mm5d",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/Z20Vj2oXMww5RLWb/datatables/5NsLXyJzU9a0Mm5d"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        -976,
-        192
-      ],
-      "id": "5a91a4c7-400a-4545-8349-3705c81a68b5",
-      "name": "DataTable_Get_Active_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "e772ad11-c13c-41ac-80ad-7292ca96f6ef",
-              "leftValue": "={{ $json.currentMenu }}",
-              "rightValue": "track_ticket",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            },
-            {
-              "id": "31640f73-8dba-42f7-8830-e40dc8c46cb9",
-              "leftValue": "={{ $json.currentStep }}",
-              "rightValue": "ask_ticket_id",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -768,
-        192
-      ],
-      "id": "7fcfd4fd-3590-4a76-972f-88234308f11b",
-      "name": "IF_Has_Track_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
-        "messages": {
-          "values": [
-            {
-              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
-              "text": "รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง"
-            }
-          ]
-        }
-      },
-      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
-      "typeVersion": 1,
-      "position": [
-        928,
-        560
-      ],
-      "id": "bdd8265d-c13f-4cc9-b8a1-b1e3a7ffc744",
-      "name": "Line_Reply_Invalid_Ticket",
-      "credentials": {
-        "lineMessagingApi": {
-          "id": "ySamoLMDrNHJJqM0",
-          "name": "Line Messaging account"
-        }
-      }
     },
     {
       "parameters": {
@@ -404,10 +213,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        496,
-        560
+        -400,
+        832
       ],
-      "id": "bcf1e788-ccac-40ee-9f2e-60d9dbb48757",
+      "id": "7a5bbd77-a2bb-40e9-95de-6065c41a80dc",
       "name": "Code_Validate_Ticket_ID"
     },
     {
@@ -437,75 +246,15 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        704,
-        560
+        -176,
+        832
       ],
-      "id": "1d85cf28-78da-48fa-ab0d-3ab06c317e38",
+      "id": "aa42be47-6397-4656-a3d1-2911b89c9002",
       "name": "IF_Ticket_Format_OK"
     },
     {
       "parameters": {
-        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
-        "messages": {
-          "values": [
-            {
-              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
-              "text": "=# ผลการติดตามงาน Ticket ID: {{ $json.request.id }}\n\nผู้แจ้ง: {{ $json.request.requester.name }}\nหัวข้อ: {{ $json.request.subject }}\nรายละเอียด: {{ $json.description_clean }}\nสถานะ: {{ $json.request.status.name }}\nแจ้งเมื่อ: {{ $json.request.created_time.display_value }}\nผู้รับผิดชอบ: {{ $json.request.technician.name }}\nโทร: {{ $json.request.technician.mobile }}\nอัปเดตล่าสุด: {{ $json.request.last_updated_time }}"
-            }
-          ]
-        }
-      },
-      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
-      "typeVersion": 1,
-      "position": [
-        1392,
-        416
-      ],
-      "id": "a03192b4-a07f-4134-9c0b-ae4328347ef1",
-      "name": "Line_Reply_Ticket_Status",
-      "credentials": {
-        "lineMessagingApi": {
-          "id": "ySamoLMDrNHJJqM0",
-          "name": "Line Messaging account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.response.sentMessages[0].id }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "track_ticket"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        1632,
-        416
-      ],
-      "id": "cd85a765-4761-4b8e-9edd-a89252856e36",
-      "name": "DataTable_Delete_Session"
-    },
-    {
-      "parameters": {
-        "operation": "rowNotExists",
         "dataTableId": {
           "__rl": true,
           "value": "egRZa85H3Urgk46T",
@@ -518,31 +267,24 @@
           "conditions": [
             {
               "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
+              "keyValue": "={{ $('IF_Ticket_Format_OK').item.json.userId }}"
             },
             {
               "keyName": "currentMenu",
               "keyValue": "track_ticket"
-            },
-            {
-              "keyName": "currentStep",
-              "keyValue": "ask_ticket_id"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
             }
           ]
-        }
+        },
+        "options": {}
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        48,
-        752
+        720,
+        736
       ],
-      "id": "031c01e6-c3fa-4cef-a90d-770635b7cf1c",
-      "name": "DataTable_If_Track_Session_Not_Exists"
+      "id": "efe99123-e5f9-4389-80fe-df9998251fd7",
+      "name": "DataTable_Delete_Session"
     },
     {
       "parameters": {
@@ -551,10 +293,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1136,
-        416
+        272,
+        736
       ],
-      "id": "273abec6-caaf-4148-b233-196cb23d8314",
+      "id": "bc7411df-5124-43e2-95cd-aa56dbe5953d",
       "name": "Code_Clean_Description"
     },
     {
@@ -588,95 +330,11 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        48,
-        1744
+        -848,
+        1408
       ],
-      "id": "41299ef8-8f81-4388-b56c-ee8eec9b0ffa",
+      "id": "f39d170d-0674-4e5f-a080-ad6504b1879d",
       "name": "DataTable_If_Report_Session_Exists"
-    },
-    {
-      "parameters": {
-        "operation": "rowNotExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        48,
-        1984
-      ],
-      "id": "6175cdd4-21cb-4471-90eb-3e1733c654ab",
-      "name": "DataTable_If_Report_Session_Not_Exists"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "211c2679-b9c5-4734-85a3-5a45e52e30ba",
-              "leftValue": "={{$json.textNormalized}}",
-              "rightValue": "แจ้งปัญหา",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        256,
-        1984
-      ],
-      "id": "899ce33d-c3bc-4a14-a349-8d9f888eabe8",
-      "name": "IF_Is_Command_Report"
-    },
-    {
-      "parameters": {
-        "jsCode": "return [\n  {\n    json: {\n      userId: $json.userId,\n      currentMenu: 'report_issue',\n      currentStep: 'ask_reporter',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),\n      replyToken: $json.replyToken\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        512,
-        1984
-      ],
-      "id": "5d9bf0be-80d2-4d2e-97b2-ffcc994508ab",
-      "name": "Code_Create_Report_Session"
     },
     {
       "parameters": {
@@ -702,6 +360,10 @@
             {
               "keyName": "status",
               "keyValue": "active"
+            },
+            {
+              "keyName": "currentStep",
+              "keyValue": "ask_reporter"
             }
           ]
         }
@@ -709,10 +371,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        256,
-        1744
+        -608,
+        1248
       ],
-      "id": "a8ca25e3-ad87-439d-a585-b5e44b59f3e4",
+      "id": "9c0736b7-5ed3-4671-955e-c36d08b96b36",
       "name": "DataTable_Get_Report_Session"
     },
     {
@@ -724,38 +386,12 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        480,
-        1520
+        -208,
+        1424
       ],
-      "id": "45514dae-e644-4851-abdf-1ab1b0adce8b",
-      "name": "Merge_Report_Input_And_Session"
-    },
-    {
-      "parameters": {
-        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
-        "messages": {
-          "values": [
-            {
-              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
-              "text": "กรุณากรอกข้อมูลแจ้งปัญหา\nผู้แจ้ง:"
-            }
-          ]
-        }
-      },
-      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
-      "typeVersion": 1,
-      "position": [
-        944,
-        1984
-      ],
-      "id": "16d80b50-cbf9-420f-8381-e431aa53241e",
-      "name": "Line_Reply_Ask_Reporter",
-      "credentials": {
-        "lineMessagingApi": {
-          "id": "ySamoLMDrNHJJqM0",
-          "name": "Line Messaging account"
-        }
-      }
+      "id": "3d639f8e-1a42-48d5-8679-c46a98a23ce0",
+      "name": "Merge_Report_Input_And_Session",
+      "disabled": true
     },
     {
       "parameters": {
@@ -859,11 +495,12 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        944,
-        1488
+        16,
+        1392
       ],
-      "id": "8093fd34-76a6-41ef-b797-a25466e19059",
-      "name": "Switch_Report_Current_Step"
+      "id": "66555fd1-ecd6-462c-9871-99e76ebc6bb0",
+      "name": "Switch_Report_Current_Step",
+      "disabled": true
     },
     {
       "parameters": {
@@ -872,11 +509,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
+        240,
         1136
       ],
-      "id": "c82275e1-dc10-4fd7-944f-67779c10571e",
-      "name": "Code_Save_Reporter"
+      "id": "f1b1a821-0e18-41ac-88ea-6612ca78bfd1",
+      "name": "Code_Save_Reporter",
+      "disabled": true
     },
     {
       "parameters": {
@@ -894,17 +532,18 @@
       "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
       "typeVersion": 1,
       "position": [
-        1696,
+        688,
         1136
       ],
-      "id": "472c8dc7-2465-4d59-aec0-6b604ea48efd",
+      "id": "76f64cab-d810-4cb4-a34a-ef1212d45cfb",
       "name": "Line_Reply_Ask_Subject",
       "credentials": {
         "lineMessagingApi": {
           "id": "ySamoLMDrNHJJqM0",
           "name": "Line Messaging account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -913,11 +552,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        1312
+        240,
+        1328
       ],
-      "id": "c50df675-ecd7-4449-8c49-ab9054a278f5",
-      "name": "Code_Save_Subject"
+      "id": "8d0ef55b-bd31-478b-8145-d95047a106b5",
+      "name": "Code_Save_Subject",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1034,11 +674,12 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1472,
+        464,
         1136
       ],
-      "id": "8a8f565f-54b2-45b5-af10-b0893bf8d53e",
-      "name": "DataTable_Update_Report_Session"
+      "id": "547620c2-84fb-4e2f-b529-88033838d0aa",
+      "name": "DataTable_Update_Report_Session",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1056,17 +697,18 @@
       "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
       "typeVersion": 1,
       "position": [
-        1696,
-        1312
+        688,
+        1328
       ],
-      "id": "0eb51958-7712-4789-a029-5b9cefab6cc9",
+      "id": "9ff064fe-416c-4faf-9fb2-9181932e217d",
       "name": "Line_Reply_Ask_Detail",
       "credentials": {
         "lineMessagingApi": {
           "id": "ySamoLMDrNHJJqM0",
           "name": "Line Messaging account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -1075,11 +717,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        1488
+        240,
+        1520
       ],
-      "id": "21608235-a014-439e-89c9-7431180be492",
-      "name": "Code_Save_Detail"
+      "id": "6f77e16f-7c23-4696-b4f9-1b018510e537",
+      "name": "Code_Save_Detail",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1097,17 +740,18 @@
       "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
       "typeVersion": 1,
       "position": [
-        1696,
-        1488
+        688,
+        1520
       ],
-      "id": "6d0f6d04-8bc7-4b1e-af57-fffb358cd213",
+      "id": "07c5a0f0-75b9-49f9-93ab-8266d3a45372",
       "name": "Line_Reply_Confirm_Report",
       "credentials": {
         "lineMessagingApi": {
           "id": "ySamoLMDrNHJJqM0",
           "name": "Line Messaging account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -1116,11 +760,12 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        1744
+        240,
+        1920
       ],
-      "id": "930d3729-ad58-4c75-8337-05fdbfd7ba43",
-      "name": "Code_Prepare_Confirm_Action"
+      "id": "9577c994-51f7-4482-a043-3b7830b66c98",
+      "name": "Code_Prepare_Confirm_Action",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1201,11 +846,12 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1488,
-        1728
+        464,
+        1904
       ],
-      "id": "2d1a14d1-dde6-4438-88a1-6d4d5996dae4",
-      "name": "Switch"
+      "id": "5bf4510c-8a7a-461a-b954-11117df97db8",
+      "name": "Switch",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1241,17 +887,18 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1920,
+        688,
         1712
       ],
-      "id": "9bd0c722-ff57-4116-851d-acc5d1223740",
+      "id": "107f6d05-3da6-485a-9f69-72be1057e228",
       "name": "HTTP_Create_Issue_SDP",
       "credentials": {
         "httpHeaderAuth": {
           "id": "OixhXiwNwNq8VPct",
           "name": "Header Auth SDP"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -1263,10 +910,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        928,
-        416
+        48,
+        736
       ],
-      "id": "5b79f70e-6551-48b9-9695-d428dd7f679f",
+      "id": "b865ca0b-cb4d-4d55-83a5-a5a685321942",
       "name": "HTTP_Get_Ticket_Status_SDP",
       "credentials": {
         "httpHeaderAuth": {
@@ -1291,17 +938,18 @@
       "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
       "typeVersion": 1,
       "position": [
-        2144,
+        912,
         1712
       ],
-      "id": "5c28810b-33e9-424f-b9dc-360b64c14bb3",
+      "id": "8301a3c8-2888-4fdf-bd3b-7944d8bc0fda",
       "name": "Line_Reply_Report_Created",
       "credentials": {
         "lineMessagingApi": {
           "id": "ySamoLMDrNHJJqM0",
           "name": "Line Messaging account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -1331,11 +979,12 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2368,
+        1136,
         1712
       ],
-      "id": "4b45c96f-b478-4fbb-917a-0c9d09c092e4",
-      "name": "DataTable_Delete_Report_Session"
+      "id": "77e9a05b-574c-4290-9d20-395ae0edc2d0",
+      "name": "DataTable_Delete_Report_Session",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1353,17 +1002,18 @@
       "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
       "typeVersion": 1,
       "position": [
-        2144,
+        912,
         1904
       ],
-      "id": "e8bc5c7d-6ed9-4d98-ac67-a1226f284a5c",
+      "id": "8f60af97-f21e-4157-b8b9-a89c9b795b3f",
       "name": "Line_Reply_Report_Cancelled",
       "credentials": {
         "lineMessagingApi": {
           "id": "ySamoLMDrNHJJqM0",
           "name": "Line Messaging account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -1381,17 +1031,18 @@
       "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
       "typeVersion": 1,
       "position": [
-        1920,
-        2080
+        688,
+        2096
       ],
-      "id": "8cf06270-2504-4a8d-bb14-03605d0629cc",
+      "id": "87a52f4e-02ff-4595-97e8-a6f8541291f2",
       "name": "Line_Reply_Confirm_Again",
       "credentials": {
         "lineMessagingApi": {
           "id": "ySamoLMDrNHJJqM0",
           "name": "Line Messaging account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -1504,10 +1155,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        736,
-        1984
+        -160,
+        544
       ],
-      "id": "e36e1ee8-c87a-482e-9cca-e2c4dcc04cc2",
+      "id": "10fe1ab9-a841-412d-8b52-aa6bde44cc03",
       "name": "DataTable_Upsert_Report_Session"
     },
     {
@@ -1625,11 +1276,12 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1472,
-        1312
+        464,
+        1328
       ],
-      "id": "2488a504-90ff-436d-aec5-365c2805dcb4",
-      "name": "DataTable_Update_Report_Session_2"
+      "id": "7ef63bfe-dd9a-42a4-b76b-eefde376e1a2",
+      "name": "DataTable_Update_Report_Session_2",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1746,11 +1398,12 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1472,
-        1488
+        464,
+        1520
       ],
-      "id": "845ca6ac-de79-4802-9cf2-9cd1f3892848",
-      "name": "DataTable_Update_Report_Session_3"
+      "id": "ecb580cd-db7f-40bf-b3ea-72a3f5ea36e6",
+      "name": "DataTable_Update_Report_Session_3",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1780,38 +1433,12 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1920,
+        688,
         1904
       ],
-      "id": "bf9c95c5-b73c-4e36-9ea5-e73811f5c54a",
-      "name": "DataTable_Delete_Report_Session_Cancel"
-    },
-    {
-      "parameters": {
-        "replyToken": "={{ $('IF_Is_Text_Message').item.json.replyToken }}",
-        "messages": {
-          "values": [
-            {
-              "quoteToken": "={{ $('Webhook_LINE_In').item.json.body.events[0].message.quoteToken }}",
-              "text": "=กรุณาเลือกเมนู หรือ\nพิมพ์ \"ติดตามงาน\"\nพิมพ์ \"แจ้งปัญหา\""
-            }
-          ]
-        }
-      },
-      "type": "@aotoki/n8n-nodes-line-messaging.lineMessaging",
-      "typeVersion": 1,
-      "position": [
-        -768,
-        816
-      ],
-      "id": "c25a72e2-95c3-4c49-9bf4-b32aebdb4c65",
-      "name": "Line_Reply_Main_Menu",
-      "credentials": {
-        "lineMessagingApi": {
-          "id": "ySamoLMDrNHJJqM0",
-          "name": "Line Messaging account"
-        }
-      }
+      "id": "e8887c01-cb0c-4603-a10a-4c1527341697",
+      "name": "DataTable_Delete_Report_Session_Cancel",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1840,10 +1467,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -768,
-        624
+        -1072,
+        448
       ],
-      "id": "b425e8bb-10b5-45c5-a578-cd110e443bb8",
+      "id": "6ae9d1a2-9dc8-4736-9380-5bf539473104",
       "name": "IF_Is_Global_Cancel"
     },
     {
@@ -1861,7 +1488,11 @@
           "conditions": [
             {
               "keyName": "userId",
-              "keyValue": "={{$json.userId}}"
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
             }
           ]
         },
@@ -1870,10 +1501,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -496,
-        480
+        -848,
+        256
       ],
-      "id": "ebdfa2b2-cef3-4767-b641-f8a10ca8ce7f",
+      "id": "21d1729e-4932-4a22-ba7b-46cdc9011ae6",
       "name": "DataTable_Delete_Any_Active_Session"
     },
     {
@@ -1884,23 +1515,379 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('IF_Is_Text_Message').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ยกเลิกการทำรายการแล้ว\\nหากต้องการเริ่มใหม่ พิมพ์เมนูที่ต้องการอีกครั้ง\"\n      }\n    ]\n  })\n}}",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ยกเลิกการทำรายการแล้ว\\nหากต้องการเริ่มใหม่ พิมพ์เมนูที่ต้องการอีกครั้ง\"\n      }\n    ]\n  })\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -272,
-        432
+        -848,
+        64
       ],
-      "id": "3b542477-1da1-41d7-91b9-b12dfee8886c",
-      "name": "HTTP Request",
+      "id": "bb0fbc29-38fc-497a-bebe-8710bf95ad7f",
+      "name": "LINE_Reply_Cancelled",
       "credentials": {
         "httpHeaderAuth": {
           "id": "xes4bcANvvlYmJny",
           "name": "Header Auth Line"
         }
       }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.textNormalized }}",
+                    "rightValue": "ติดตามงาน",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0bf55e67-df6a-46c0-83dc-7724bf24a1b2"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ab6fa949-fdac-44a1-b29b-ce2bfb13223e",
+                    "leftValue": "={{$json.textNormalized}}",
+                    "rightValue": "แจ้งปัญหา",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -624,
+        448
+      ],
+      "id": "e2ae00ad-1f3a-426d-8b4e-e8144ad483fa",
+      "name": "Switch_Start_Command"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาระบุ Ticket ID:\\nหรือพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        48,
+        224
+      ],
+      "id": "afdfbb46-329c-4e84-8f6d-359fa6b8a5ee",
+      "name": "LINE_Reply_Ask_Ticket_ID",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xes4bcANvvlYmJny",
+          "name": "Header Auth Line"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "track_ticket"
+            },
+            {
+              "keyName": "currentStep",
+              "keyValue": "ask_ticket_id"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        832
+      ],
+      "id": "924879c1-bda8-485d-9d50-5ed574a4d80c",
+      "name": "DataTable_If_Track_Session_By_User_Exists"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        448
+      ],
+      "id": "2e50e734-853c-4a58-ba60-e1f45ba8aef8",
+      "name": "DataTable_If_Track_Session_By_User_Not_Exists"
+    },
+    {
+      "parameters": {
+        "content": "## Global_Cancel\nหากผู้ใช้พิมพ์ยกเลิกเข้ามา",
+        "height": 432,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -928,
+        -16
+      ],
+      "typeVersion": 1,
+      "id": "9f4af910-34a2-412a-b1b3-fd53fb719265",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณากรอกข้อมูลแจ้งปัญหา\\nผู้แจ้ง:\\nหรือพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        64,
+        544
+      ],
+      "id": "0ea05a96-6d76-449c-9a42-078a9030a770",
+      "name": "Line_Reply_Ask_Reporter",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xes4bcANvvlYmJny",
+          "name": "Header Auth Line"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        48,
+        928
+      ],
+      "id": "c7a47a26-ad27-400a-9d7f-19ef995ffde8",
+      "name": "Line_Reply_Invalid_Ticket",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xes4bcANvvlYmJny",
+          "name": "Header Auth Line"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"# ผลการติดตามงาน Ticket ID: \" + $json.request.id +\n              \"\\n\\nผู้แจ้ง: \" + $json.request.requester.name +\n              \"\\nหัวข้อ: \" + $json.request.subject +\n              \"\\nรายละเอียด: \" + $json.description_clean +\n              \"\\nสถานะ: \" + $json.request.status.name +\n              \"\\nแจ้งเมื่อ: \" +  $json.request.created_time.display_value +\n              \"\\nผู้รับผิดชอบ: \" + \n              \"\\nโทร: \" + \n              \"\\nอัปเดตล่าสุด: \" + $json.request.last_updated_time\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        736
+      ],
+      "id": "2912c06f-c174-4567-b996-03081b4f4d98",
+      "name": "Line_Reply_Ticket_Status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xes4bcANvvlYmJny",
+          "name": "Header Auth Line"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ติดตามงาน\nผู้ใช้ส่งข้อความ \"ติดตามงาน\" บันทึก ID ผู้ใช้ลง Data table และส่งข้อความถาม Ticket ID",
+        "height": 240,
+        "width": 710,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -480,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "a989dec8-e786-4c9f-9ca0-1dd97e1a1767",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## แจ้งปัญหา\nผู้ใช้ส่งข้อความ \"แจ้งปัญหา\" บันทึก ID ผู้ใช้ลง Data table และส่งข้อความถามข้อมูลผู้แจ้ง",
+        "height": 240,
+        "width": 704,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -464,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "cbcc6f7c-9f15-4580-914c-f35ea47291b4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      userId: $json.userId,\n      currentMenu: 'report_issue',\n      currentStep: 'ask_reporter',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $input.first().json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),\n      replyToken: $json.replyToken,\n      quoteToken: $json.quoteToken\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        544
+      ],
+      "id": "8d5615d3-3e43-434c-b204-ae7f6a3cdec4",
+      "name": "Code_Create_Report_Session"
+    },
+    {
+      "parameters": {
+        "content": "## ติดตามงาน\n",
+        "height": 352,
+        "width": 1824
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -896,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "99e07f3f-a0cc-4d4b-a175-419ef01254eb",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            },
+            {
+              "keyName": "currentStep",
+              "keyValue": "ask_subject"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        1424
+      ],
+      "id": "f6390dda-acd0-4204-8d79-9b9a8964e23a",
+      "name": "DataTable_Get_Subject_Session"
     }
   ],
   "pinData": {},
@@ -1914,13 +1901,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "Line_Reply_Main_Menu",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Code_Parse_LINE_Event": {
@@ -1928,11 +1909,6 @@
         [
           {
             "node": "IF_Is_Text_Message",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Merge_Report_Input_And_Session",
             "type": "main",
             "index": 0
           }
@@ -1950,29 +1926,6 @@
         ]
       ]
     },
-    "DataTable_If_Track_Session_Exists": {
-      "main": [
-        [
-          {
-            "node": "Code_Handle_Ticket_Input",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF_Is_Command_Track": {
-      "main": [
-        [
-          {
-            "node": "Code_Prepare_Track_Session",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
     "Code_Prepare_Track_Session": {
       "main": [
         [
@@ -1988,18 +1941,7 @@
       "main": [
         [
           {
-            "node": "Line_Reply_Ask_Ticket_ID",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Get_Active_Session": {
-      "main": [
-        [
-          {
-            "node": "IF_Has_Track_Session",
+            "node": "LINE_Reply_Ask_Ticket_ID",
             "type": "main",
             "index": 0
           }
@@ -2046,66 +1988,11 @@
         ]
       ]
     },
-    "Line_Reply_Ticket_Status": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Delete_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_If_Track_Session_Not_Exists": {
-      "main": [
-        [
-          {
-            "node": "IF_Is_Command_Track",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code_Clean_Description": {
       "main": [
         [
           {
             "node": "Line_Reply_Ticket_Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_If_Report_Session_Not_Exists": {
-      "main": [
-        [
-          {
-            "node": "IF_Is_Command_Report",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF_Is_Command_Report": {
-      "main": [
-        [
-          {
-            "node": "Code_Create_Report_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Create_Report_Session": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Upsert_Report_Session",
             "type": "main",
             "index": 0
           }
@@ -2119,19 +2006,18 @@
             "node": "DataTable_Get_Report_Session",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "DataTable_Get_Subject_Session",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
     },
     "DataTable_Get_Report_Session": {
       "main": [
-        [
-          {
-            "node": "Merge_Report_Input_And_Session",
-            "type": "main",
-            "index": 1
-          }
-        ]
+        []
       ]
     },
     "Switch_Report_Current_Step": {
@@ -2341,26 +2227,26 @@
             "node": "DataTable_Delete_Any_Active_Session",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "LINE_Reply_Cancelled",
+            "type": "main",
+            "index": 0
           }
         ],
         [
           {
-            "node": "DataTable_If_Report_Session_Not_Exists",
+            "node": "DataTable_If_Track_Session_By_User_Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DataTable_If_Track_Session_By_User_Not_Exists",
             "type": "main",
             "index": 0
           },
           {
             "node": "DataTable_If_Report_Session_Exists",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DataTable_If_Track_Session_Not_Exists",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DataTable_If_Track_Session_Exists",
             "type": "main",
             "index": 0
           }
@@ -2369,9 +2255,65 @@
     },
     "DataTable_Delete_Any_Active_Session": {
       "main": [
+        []
+      ]
+    },
+    "Switch_Start_Command": {
+      "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Code_Prepare_Track_Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code_Create_Report_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Track_Session_By_User_Exists": {
+      "main": [
+        [
+          {
+            "node": "Code_Handle_Ticket_Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Track_Session_By_User_Not_Exists": {
+      "main": [
+        [
+          {
+            "node": "Switch_Start_Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Line_Reply_Ticket_Status": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Delete_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Create_Report_Session": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Upsert_Report_Session",
             "type": "main",
             "index": 0
           }
@@ -2382,13 +2324,14 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "ad26e1e7-2c27-4b6d-9e0d-23ccdc9ffc29",
+  "versionId": "61daf2c7-f7a2-40b1-9943-11553500099e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "dda6de7ca272c1ba53a314459d42bed4e69b954e6e186d2627278aacd8076796"
   },
-  "id": "CWBfHuI15tLkNSry",
+  "id": "sUXm3P97L46Gjlrj",
   "tags": []
 }

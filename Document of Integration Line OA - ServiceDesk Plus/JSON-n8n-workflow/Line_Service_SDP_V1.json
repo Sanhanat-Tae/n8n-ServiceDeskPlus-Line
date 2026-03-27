@@ -1,0 +1,510 @@
+{
+  "name": "Line_Service_SDP_V1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "4751ed51-c224-4e1d-ade8-d50e602516b6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "a4d8db82-604a-4857-80e8-9a53a66b963a",
+      "name": "Webhook",
+      "webhookId": "4751ed51-c224-4e1d-ade8-d50e602516b6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $json.body.events[0].message.text.toLowerCase(); // ดึงข้อความจาก Webhook\n\nlet result = {};\n\n// ตรวจสอบว่าเป็นคำสั่งเช็คหรือแจ้งงาน\nif (message.includes('check') || message.includes('เช็ค') || message.includes('ติดตามงาน')) {\n    result.command = 'check'; // ถ้าเป็นเช็คงาน ให้ส่งไปที่ node การเช็คงาน\n} else if (message.includes('create') || message.includes('แจ้งงาน')|| message.includes('แจ้งปัญหา')) {\n    result.command = 'create'; // ถ้าเป็นการแจ้งงาน ให้ส่งไปที่ node การแจ้งงาน\n} else {\n    result.command = 'unknown'; // ถ้าไม่ตรงกับเงื่อนไขให้แยกเป็น unknown\n}\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "22bc756a-1146-4463-b74a-03e4c5cdc5ae",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command === \"check\"}}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "fdf5c6d3-716c-4fc5-8257-6ac943b2cb1f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "879b7a33-7a66-426e-8c5d-bce166e9895d",
+                    "leftValue": "={{ $json.command === \"create\"}}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5ed33080-ac62-4f5a-aa1b-1fe52ca89600",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "={{ 'http://host.docker.internal:80/api/v3/requests/' + $('Edit Fields Check').item.json.requestId}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        928,
+        -112
+      ],
+      "id": "166077f8-a310-4396-a2f8-80624caddcf5",
+      "name": "HTTP Request Service Desk Plus",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OixhXiwNwNq8VPct",
+          "name": "Header Auth SDP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0e4db507-31e4-48b6-999a-49a7c0ff011f",
+              "name": "replyTextFormSDP",
+              "value": "={{\n'RequestID: ' + $json.request.id + '\\n' + \n'Subject: ' + $json.request.subject + '\\n' +\n'Status: ' + $json.request.status.name + '\\n' +\n'Requester: ' + $json.request.requester.name\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        -112
+      ],
+      "id": "1d49840f-f589-429f-b325-8315917951e8",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Edit Fields Check').item.json.body.events[0].replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: $json.replyTextFormSDP\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1376,
+        -112
+      ],
+      "id": "658394a5-5029-4613-a154-6d148a3a4d14",
+      "name": "HTTP Request Line1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xes4bcANvvlYmJny",
+          "name": "Header Auth Line"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "84f55e02-acc9-45f5-a946-221520aba052",
+              "name": "body.events[0].message.text",
+              "value": "={{ $('Webhook').item.json.body.events[0].message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "4b5e53bc-db53-4d40-8713-5edf3f986d28",
+              "name": "body.events[0].replyToken",
+              "value": "={{ $('Webhook').item.json.body.events[0].replyToken }}",
+              "type": "string"
+            },
+            {
+              "id": "d24ba787-7160-4df7-a787-edf1221148f5",
+              "name": "requestId",
+              "value": "={{\n$('Webhook').item.json.body.events[0].message.text.replace(/check|เช็ค/i, '').trim()\n}}",
+              "type": "string"
+            },
+            {
+              "id": "60ac1086-ca26-42f1-9443-1debb7e86c1f",
+              "name": "replyText",
+              "value": "={{\n'กำลังตรวจสอบเลขคำขอ ' + $('Webhook').item.json.body.events[0].message.text.replace(/check|เช็ค/i, '').trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        -112
+      ],
+      "id": "8ff430b5-fc60-428c-a4b3-c6deb2a4775b",
+      "name": "Edit Fields Check"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "24c4d765-9d1b-4e8b-afeb-c42de4c2755f",
+              "name": "requester",
+              "value": "={{ $json.requester }}",
+              "type": "string"
+            },
+            {
+              "id": "b4ece298-d43a-4815-962e-740669660571",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "5667ee51-44ce-44f4-bea9-f66e02bbc6f0",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        80
+      ],
+      "id": "152d373a-e906-43ac-8026-739d5c895e9d",
+      "name": "Edit Fields Create"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $('Webhook').first().json.body.events[0].message.text; // ดึงข้อความจาก Webhook\n\nlet result = {\n  requester: '',\n  subject: '',\n  description: ''\n};\n\n// ตรวจสอบว่ามีคำว่า \"create\" ในข้อความ\nif (message.toLowerCase().includes('create')) {\n  // ใช้ RegEx ที่สามารถแยกข้อมูลได้ถูกต้องจากข้อความ โดยรองรับทั้งช่องว่างและ newline\n  const requesterMatch = message.match(/requester:\\s*([^\\n]*)/i);  // ตรวจสอบ requester\n  const subjectMatch = message.match(/subject:\\s*([^\\n]*)/i);      // ตรวจสอบ subject\n  const descriptionMatch = message.match(/description:\\s*([^\\n]*)/i); // ตรวจสอบ description\n  \n  // แยกข้อมูลจากข้อความ\n  if (requesterMatch && requesterMatch[1]) {\n    result.requester = requesterMatch[1].trim();  // แยก requester\n  }\n\n  if (subjectMatch && subjectMatch[1]) {\n    result.subject = subjectMatch[1].trim();  // แยก subject\n  }\n\n  if (descriptionMatch && descriptionMatch[1]) {\n    result.description = descriptionMatch[1].trim();  // แยก description\n  }\n}\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        80
+      ],
+      "id": "6c03be65-8b52-436b-9f55-549c5f76092e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{'http://host.docker.internal:80/api/v3/requests/'}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input_data",
+              "value": "={\n    \"request\": {\n        \"subject\": {{ $json.subject }},\n        \"description\": {{ $json.description }},\n        \"requester\": {\n            \"id\": \"4\",\n            \"name\": \"administrator\"\n        },\n        \"impact_details\": \"Routine tasks are pending due to mail server problem\",\n        \"resolution\": {\n            \"content\": \"Mail Fetching Server problem has been fixed\"\n        },\n        \"status\": {\n            \"name\": \"Open\"\n        }\n    }\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1152,
+        80
+      ],
+      "id": "6becb613-0c55-44e7-8e90-9faee17219c2",
+      "name": "HTTP Request Service Desk Plus1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OixhXiwNwNq8VPct",
+          "name": "Header Auth SDP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Webhook').item.json.body.events[0].replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"# แจ้งปัญหาสำเร็จ\" +\n              \"\\nผู้แจ้ง: \" + $json.request.requester.name + \n              \"\\nเรื่อง: \" + $json.request.subject + \n              \"\\nรายละเอียด:\" + $json.request.description +\n              \"\\nTicket_ID: \" + $json.request.id + \n              \"\\nวันที่แจ้ง: \" + $json.request.created_time.display_value\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1600,
+        80
+      ],
+      "id": "91cc31d5-09ee-49ff-8bc8-7787ea46a8d6",
+      "name": "HTTP Request Line",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xes4bcANvvlYmJny",
+          "name": "Header Auth Line"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0e2efcc7-1168-4a5f-a443-b0fdfa4e3bcd",
+              "name": "request.requester.name",
+              "value": "={{ $json.request.requester.name }}",
+              "type": "string"
+            },
+            {
+              "id": "e063cd2e-2f04-438d-99f6-2e63aa87492f",
+              "name": "request.id",
+              "value": "={{ $json.request.id }}",
+              "type": "string"
+            },
+            {
+              "id": "4104ecd3-f2a7-4e82-8b81-07081d459a9f",
+              "name": "request.created_time.display_value",
+              "value": "={{ $json.request.created_time.display_value }}",
+              "type": "string"
+            },
+            {
+              "id": "88313d38-42d1-4800-a4fb-a85a85a8c067",
+              "name": "request.status.name",
+              "value": "={{ $json.request.status.name }}",
+              "type": "string"
+            },
+            {
+              "id": "30ae1b10-3196-4c41-acdb-1c4f7f266d66",
+              "name": "request.subject",
+              "value": "={{ $json.request.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "3c8b0370-44e9-4e8d-a32d-dc3b2ad1a4aa",
+              "name": "request.description",
+              "value": "={{ $json.request.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1376,
+        80
+      ],
+      "id": "29aef872-d822-4d70-ab0b-0b8c6372ea22",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Service Desk Plus": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Line1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Line1": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields Check": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Service Desk Plus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Create": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Service Desk Plus1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Service Desk Plus1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Line": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Line",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c56de662-b677-4927-ba20-ff420397527c",
+  "meta": {
+    "instanceId": "dda6de7ca272c1ba53a314459d42bed4e69b954e6e186d2627278aacd8076796"
+  },
+  "id": "Pgk0CjChzK8RUu3N",
+  "tags": []
+}
