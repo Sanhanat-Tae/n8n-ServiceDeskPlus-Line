@@ -101,3 +101,20 @@ sudo docker run -d \
   -e N8N_RUNNERS_ENABLED=true \
   -v n8n_data:/home/node/.n8n \
   docker.n8n.io/n8nio/n8n
+
+//--new -----------------------------------
+sudo docker rm -f n8n
+
+sudo docker run -d \
+  --name n8n \
+  --restart unless-stopped \
+  -p 5678:5678 \
+  -e TZ="Asia/Bangkok" \
+  -e GENERIC_TIMEZONE="Asia/Bangkok" \
+  -e WEBHOOK_URL="https://YOUR-NGROK-URL.ngrok.app/" \
+  -e N8N_EDITOR_BASE_URL="https://YOUR-NGROK-URL.ngrok.app/" \
+  -e N8N_PROXY_HOPS=1 \
+  -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
+  -e N8N_RUNNERS_ENABLED=true \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
