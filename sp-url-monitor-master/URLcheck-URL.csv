@@ -1,0 +1,5 @@
+URL;maxresponsetime;maxerrorbeforesend;alreadysend;numbererror;reserve;reserve;recipient
+http://home.contoso.intranet;4;2;N;0;1;;SPteam@contoso.com
+http://dept.contoso.intranet/sites/News;4;2;N;0;1;;SPteam@contoso.com
+http://google.com
+"#ToDo Excluse ""SorryPage"" like IISdefault;;;;;;;"
