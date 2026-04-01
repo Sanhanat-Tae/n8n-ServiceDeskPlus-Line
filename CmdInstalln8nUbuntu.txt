@@ -1,0 +1,90 @@
+mkdir -p ~/n8n-ngrok
+cd ~/n8n-ngrok
+
+//---------------------------------
+nano .env
+
+//---------------------------------
+NGROK_AUTHTOKEN=ใส่_authtoken_ของคุณ
+NGROK_DOMAIN=your-name.ngrok.app
+
+WEBHOOK_URL=https://your-name.ngrok.app/
+N8N_EDITOR_BASE_URL=https://your-name.ngrok.app/
+
+TZ=Asia/Bangkok
+GENERIC_TIMEZONE=Asia/Bangkok
+
+//---------------------------------
+nano docker-compose.yml
+
+//---------------------------------
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - TZ=${TZ}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
+      - N8N_PROXY_HOPS=1
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    command:
+      - "http"
+      - "n8n:5678"
+      - "--url"
+      - "https://${NGROK_DOMAIN}"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+
+volumes:
+  n8n_data:
+
+//---------------------------------
+docker compose up -d
+
+//---------------------------------
+docker compose ps
+docker compose logs -f n8n
+docker compose logs -f ngrok
+
+//---------------------------------
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    command:
+      - "http"
+      - "n8n:5678"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+
+//---------------------------------
+docker compose up -d
+docker compose logs -f ngrok
+
+//---------------------------------
+WEBHOOK_URL=https://สุ่มมาให้.ngrok.app/
+N8N_EDITOR_BASE_URL=https://สุ่มมาให้.ngrok.app/
+
+//---------------------------------
+docker compose up -d --force-recreate n8n
