@@ -88,3 +88,16 @@ N8N_EDITOR_BASE_URL=https://สุ่มมาให้.ngrok.app/
 
 //---------------------------------
 docker compose up -d --force-recreate n8n
+
+
+//--new -----------------------------------
+sudo docker run -d \
+  --name n8n \
+  --restart unless-stopped \
+  -p 5678:5678 \
+  -e GENERIC_TIMEZONE="Asia/Bangkok" \
+  -e TZ="Asia/Bangkok" \
+  -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
+  -e N8N_RUNNERS_ENABLED=true \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
