@@ -1,0 +1,3266 @@
+{
+  "name": "SDP Service Technician",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ed55fbf8-4560-4dd9-b330-bc4f0cebd15b",
+              "leftValue": "={{ $json.isTextMessage }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3120,
+        -368
+      ],
+      "id": "a763a631-7073-4103-aaf7-66dc21b1733d",
+      "name": "IF_Is_Text_Message",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $json.body?.events?.[0] ?? $json.events?.[0] ?? {};\n\nconst isTextMessage =\n  event.type === 'message' &&\n  event.message?.type === 'text';\n\nconst text = isTextMessage ? (event.message.text ?? '').trim() : '';\n\nreturn [\n  {\n    json: {\n      eventType: event.type ?? '',\n      messageType: event.message?.type ?? '',\n      isTextMessage,\n\n      userId: event.source?.userId ?? '',\n      replyToken: event.replyToken ?? '',\n\n      text,\n      textNormalized: text.toLowerCase(),\n\n      timestamp: event.timestamp ?? Date.now()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        -224
+      ],
+      "id": "3d1595f6-317b-4d35-aefd-c8c082721f4b",
+      "name": "Code_Parse_LINE_Event",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e31f4057-89dc-452e-ab50-ddd9fafe861f",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2704,
+        -224
+      ],
+      "id": "e2d9b023-874a-4f5a-800d-cc1d583520e4",
+      "name": "Webhook_LINE_In",
+      "webhookId": "e31f4057-89dc-452e-ab50-ddd9fafe861f",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "09b4d10b-d8e4-4f4a-a97f-e26531ee4e38",
+              "leftValue": "={{ $json.textNormalized }}",
+              "rightValue": "ติดตามงาน",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4384,
+        -48
+      ],
+      "id": "0b37bb01-85f5-4245-8baf-76565027b2c3",
+      "name": "IF_Is_Command_Track",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "track_ticket"
+            },
+            {
+              "keyName": "currentStep",
+              "keyValue": "ask_ticket_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4144,
+        -240
+      ],
+      "id": "e8f6915f-3c14-45c3-8ed2-ace60d5ce927",
+      "name": "DataTable_If_Track_Session_Exists",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      userId: $input.first().json.userId,\n      currentMenu: 'track_ticket',\n      currentStep: 'ask_ticket_id',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $input.first().json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),\n      replyToken: $input.first().json.replyToken\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4640,
+        -48
+      ],
+      "id": "8c71fb20-0eac-41f9-9779-4d1c7a52637b",
+      "name": "Code_Prepare_Track_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "userId": "={{ $json.userId }}",
+            "currentMenu": "={{ $json.currentMenu }}",
+            "currentStep": "={{ $json.currentStep }}",
+            "status": "={{ $json.status }}",
+            "payloadJson": "={{ $json.payloadJson }}",
+            "lastUserText": "={{ $json.lastUserText }}",
+            "expireAt": "={{ $json.expireAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currentMenu",
+              "displayName": "currentMenu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currentStep",
+              "displayName": "currentStep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payloadJson",
+              "displayName": "payloadJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastUserText",
+              "displayName": "lastUserText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expireAt",
+              "displayName": "expireAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4800,
+        -48
+      ],
+      "id": "a2f2d983-197c-4106-bc3a-1e9ed060f205",
+      "name": "DataTable_Upsert_Track_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticketId = ($json.text || '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n      ticketId\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4384,
+        -240
+      ],
+      "id": "9a1d84c7-b0b0-4146-836e-c22ed84488a8",
+      "name": "Code_Handle_Ticket_Input",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticketId = ($json.ticketId || '').trim();\n\n// ปรับ regex ให้ตรงกับระบบจริงของคุณ\nconst isTicketFormatOk = /^[0-9]+$/.test(ticketId);\n\nreturn [\n  {\n    json: {\n      ...$json,\n      isTicketFormatOk\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4592,
+        -240
+      ],
+      "id": "fc3b37a7-8b4a-4f6b-adfe-14af057131c9",
+      "name": "Code_Validate_Ticket_ID",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "91ee5ba4-d7d4-4adb-a90c-65c6791c19da",
+              "leftValue": "={{ $json.isTicketFormatOk }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4800,
+        -240
+      ],
+      "id": "78244f0d-e728-4e0e-a58f-412b3e0b5014",
+      "name": "IF_Ticket_Format_OK",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.response.sentMessages[0].id }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "track_ticket"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5728,
+        -448
+      ],
+      "id": "371cb1b7-e1ed-4fab-b990-f300335c9383",
+      "name": "DataTable_Delete_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "track_ticket"
+            },
+            {
+              "keyName": "currentStep",
+              "keyValue": "ask_ticket_id"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4144,
+        -48
+      ],
+      "id": "5fcb29fd-c08f-4e02-8319-e296bdd9ad31",
+      "name": "DataTable_If_Track_Session_Not_Exists",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function cleanDescription(html) {\n  if (!html) return '';\n\n  return html\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/div>/gi, '\\n')\n    .replace(/<div[^>]*>/gi, '')\n    .replace(/<[^>]+>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/&#39;/g, \"'\")\n    .replace(/\\n\\s*\\n+/g, '\\n')\n    .trim();\n}\n\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      description_clean: cleanDescription($input.first().json.request.description)\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5232,
+        -448
+      ],
+      "id": "ffe25beb-3e28-4035-be9d-1e006634fa2e",
+      "name": "Code_Clean_Description",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4112,
+        720
+      ],
+      "id": "c5febcff-b61b-426a-abad-e356db79d431",
+      "name": "DataTable_If_Report_Session_Exists",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4112,
+        960
+      ],
+      "id": "9cbc118c-ebf6-4a25-b197-e089869b04bc",
+      "name": "DataTable_If_Report_Session_Not_Exists",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "211c2679-b9c5-4734-85a3-5a45e52e30ba",
+              "leftValue": "={{$json.textNormalized}}",
+              "rightValue": "แจ้งปัญหา",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4320,
+        960
+      ],
+      "id": "05ee6113-561b-45cb-bbf7-445fd39673a4",
+      "name": "IF_Is_Command_Report",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      userId: $json.userId,\n      currentMenu: 'report_issue',\n      currentStep: 'ask_reporter',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),\n      replyToken: $json.replyToken\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4576,
+        960
+      ],
+      "id": "cda227c7-b50f-4d99-99b9-5cfe0ac86f8e",
+      "name": "Code_Create_Report_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4320,
+        720
+      ],
+      "id": "ebf4d3d9-b79d-4928-8598-51554bb66941",
+      "name": "DataTable_Get_Report_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4544,
+        496
+      ],
+      "id": "3ed6867c-1b4f-49e2-89f0-50816faeb7bf",
+      "name": "Merge_Report_Input_And_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.currentStep }}",
+                    "rightValue": "=ask_reporter",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8a3beb49-6df7-4846-ae64-7cb3b4001770"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "836a8cf7-5f4a-478d-9a4f-d5708a0fdcc4",
+                    "leftValue": "={{$json.currentStep}}",
+                    "rightValue": "ask_subject",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "07626c44-0c3e-449e-9bbf-593c064b6d6d",
+                    "leftValue": "={{$json.currentStep}}",
+                    "rightValue": "ask_detail",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cb0064ab-fe92-4c11-bb0b-5b97192f01fe",
+                    "leftValue": "={{$json.currentStep}}",
+                    "rightValue": "confirm_submit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        5008,
+        464
+      ],
+      "id": "c3c4140b-8764-41af-a69f-be2e4ceccaf1",
+      "name": "Switch_Report_Current_Step",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\n\npayload.reporterName = $json.text;\n\nreturn [\n  {\n    json: {\n      ...$json,\n      payloadJson: JSON.stringify(payload),\n      currentStep: 'ask_subject',\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5312,
+        112
+      ],
+      "id": "966c0c66-d2aa-4ef3-a83f-08cd62b3e5a0",
+      "name": "Code_Save_Reporter",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\n\npayload.subject = $json.text;\n\nreturn [\n  {\n    json: {\n      ...$json,\n      payloadJson: JSON.stringify(payload),\n      currentStep: 'ask_detail',\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5312,
+        288
+      ],
+      "id": "3f440f97-6e4d-410b-a78c-8f9e49f6e3a2",
+      "name": "Code_Save_Subject",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{$json.userId}}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "payloadJson": "={{ $json.payloadJson }}",
+            "currentStep": "={{ $json.currentStep }}",
+            "lastUserText": "={{ $json.lastUserText }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "currentMenu",
+              "displayName": "currentMenu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "currentStep",
+              "displayName": "currentStep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "payloadJson",
+              "displayName": "payloadJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastUserText",
+              "displayName": "lastUserText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expireAt",
+              "displayName": "expireAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5536,
+        112
+      ],
+      "id": "1628a2cc-2f7d-40ab-9318-d1037a441272",
+      "name": "DataTable_Update_Report_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\n\npayload.detail = $json.text;\n\nreturn [\n  {\n    json: {\n      ...$json,\n      payloadJson: JSON.stringify(payload),\n      currentStep: 'confirm_submit',\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString(),\n      reporterName: payload.reporterName || '',\n      subject: payload.subject || '',\n      detail: payload.detail || ''\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5312,
+        464
+      ],
+      "id": "68a1dcd8-7234-45f5-87ef-aa98d4397065",
+      "name": "Code_Save_Detail",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\nconst action = ($json.textNormalized || '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n      action,\n      reporterName: payload.reporterName || '',\n      subject: payload.subject || '',\n      detail: payload.detail || ''\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5312,
+        720
+      ],
+      "id": "50361535-ceb8-4d83-9948-1ec23ad95115",
+      "name": "Code_Prepare_Confirm_Action",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.action}}",
+                    "rightValue": "ยืนยัน",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bf75e1bc-0481-4cba-ae37-69ca9b0042e2"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b25e204f-294d-4195-b84c-b234effd6beb",
+                    "leftValue": "={{$json.action}}",
+                    "rightValue": "ยกเลิก",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f57d8ec4-de13-4ec8-9dd8-562d0629326b",
+                    "leftValue": "={{$json.action}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        5552,
+        704
+      ],
+      "id": "148d82a0-1933-4fe3-8d11-3100080e745a",
+      "name": "Switch",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://host.docker.internal:80/api/v3/requests",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.manageengine.sdp.v3+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input_data",
+              "value": "={\n    \"request\": {\n        \"subject\": {{ $json.subject }},\n        \"description\": {{ $json.detail }},\n        \"requester\": {\n            \"id\": \"4\",\n            \"name\": \"administrator\"\n        },\n        \"status\": {\n            \"name\": \"Open\"\n        }\n    }\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5984,
+        688
+      ],
+      "id": "c3eba585-5835-48e9-8f94-fbe417b54240",
+      "name": "HTTP_Create_Issue_SDP",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "={{'http://host.docker.internal:80/api/v3/requests/' + $json.text}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5024,
+        -448
+      ],
+      "id": "913c9f11-0e60-4040-8423-5853f2463e7b",
+      "name": "HTTP_Get_Ticket_Status_SDP",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $('Switch').item.json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6432,
+        688
+      ],
+      "id": "a460e2cf-3845-4a5b-9238-d55ea54eea01",
+      "name": "DataTable_Delete_Report_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "userId": "={{ $json.userId }}",
+            "currentMenu": "={{ $json.currentMenu }}",
+            "currentStep": "={{ $json.currentStep }}",
+            "status": "={{ $json.status }}",
+            "payloadJson": "={{ $json.payloadJson }}",
+            "lastUserText": "={{ $json.lastUserText }}",
+            "expireAt": "={{ $json.expireAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currentMenu",
+              "displayName": "currentMenu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currentStep",
+              "displayName": "currentStep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payloadJson",
+              "displayName": "payloadJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastUserText",
+              "displayName": "lastUserText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expireAt",
+              "displayName": "expireAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4800,
+        960
+      ],
+      "id": "003845e5-1f19-41a3-b476-ffe56783141f",
+      "name": "DataTable_Upsert_Report_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{$json.userId}}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "payloadJson": "={{ $json.payloadJson }}",
+            "currentStep": "={{ $json.currentStep }}",
+            "lastUserText": "={{ $json.lastUserText }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "currentMenu",
+              "displayName": "currentMenu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "currentStep",
+              "displayName": "currentStep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "payloadJson",
+              "displayName": "payloadJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastUserText",
+              "displayName": "lastUserText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expireAt",
+              "displayName": "expireAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5536,
+        288
+      ],
+      "id": "cba98b29-0d35-41b9-8550-fe163f608e8a",
+      "name": "DataTable_Update_Report_Session_2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{$json.userId}}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "payloadJson": "={{ $json.payloadJson }}",
+            "currentStep": "={{ $json.currentStep }}",
+            "lastUserText": "={{ $json.lastUserText }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "currentMenu",
+              "displayName": "currentMenu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "currentStep",
+              "displayName": "currentStep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "payloadJson",
+              "displayName": "payloadJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastUserText",
+              "displayName": "lastUserText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expireAt",
+              "displayName": "expireAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5536,
+        464
+      ],
+      "id": "7599cb41-2469-4c51-9d8a-3f9e5169b30a",
+      "name": "DataTable_Update_Report_Session_3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $('Switch').item.json.userId }}"
+            },
+            {
+              "keyName": "currentMenu",
+              "keyValue": "report_issue"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5984,
+        880
+      ],
+      "id": "ebfb1365-b530-4e60-aa91-8052e121cae6",
+      "name": "DataTable_Delete_Report_Session_Cancel",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d876106c-742e-4c7f-8570-33ed00194301",
+              "leftValue": "={{ $json.textNormalized }}",
+              "rightValue": "ยกเลิก",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3328,
+        -464
+      ],
+      "id": "5dace78a-3ffb-4e16-877e-e7b465eaf1ab",
+      "name": "IF_Is_Global_Cancel",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "egRZa85H3Urgk46T",
+          "mode": "list",
+          "cachedResultName": "line_sessions",
+          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{$json.userId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3536,
+        -592
+      ],
+      "id": "04179f79-cd3c-474e-880f-c6769b2789e9",
+      "name": "DataTable_Delete_Any_Active_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาระบุ Ticket ID:\\nหรือพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5024,
+        -48
+      ],
+      "id": "d26dedc5-d3dd-4513-b4c8-3b2b34ee6f14",
+      "name": "LINE_Reply_Ask_Ticket_ID",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('IF_Is_Text_Message').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ยกเลิกการทำรายการแล้ว\\nหากต้องการเริ่มใหม่ พิมพ์เมนูที่ต้องการอีกครั้ง\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3760,
+        -592
+      ],
+      "id": "9c2b71c2-6113-4076-9c45-dc2d8d792caa",
+      "name": "LINE_Reply_Cancelled",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5024,
+        -240
+      ],
+      "id": "1f5bacef-52c9-4adc-b19e-f8a8b3d8b625",
+      "name": "Line_Reply_Invalid_Ticket1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"# ผลการติดตามงาน Ticket ID: \" + $json.request.id +\n              \"\\n\\nผู้แจ้ง: \" + $json.request.requester.name +\n              \"\\nหัวข้อ: \" + $json.request.subject +\n              \"\\nรายละเอียด: \" + $json.description_clean +\n              \"\\nสถานะ: \" + $json.request.status.name +\n              \"\\nแจ้งเมื่อ: \" +  $json.request.created_time.display_value +\n              \"\\nผู้รับผิดชอบ: \" + \n              \"\\nโทร: \" + \n              \"\\nอัปเดตล่าสุด: \" + $json.request.last_updated_time\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5472,
+        -448
+      ],
+      "id": "84f6b202-7f7c-4e98-a19b-1af39ce6614b",
+      "name": "Line_Reply_Ticket_Status1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"เรื่อง:\\n\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5824,
+        112
+      ],
+      "id": "905da871-9fd3-42c9-94d5-aee31299ad40",
+      "name": "Line_Reply_Ask_Subject",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รายละเอียด:\\n\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5824,
+        288
+      ],
+      "id": "ad5e190f-2543-43df-8164-e922a2f84dcc",
+      "name": "Line_Reply_Ask_Detail",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5824,
+        464
+      ],
+      "id": "7bf51990-b4c5-4094-917d-86efa27cddd9",
+      "name": "Line_Reply_Confirm_Report",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณากรอกข้อมูลแจ้งปัญหา\\nผู้แจ้ง:\\nหรือพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5040,
+        960
+      ],
+      "id": "6fe91d88-41e5-41c6-a520-54d006643164",
+      "name": "Line_Reply_Ask_Reporter",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"บันทึกการแจ้งปัญหาเรียบร้อยแล้ว\" +\n              \"\\nTicket ID: \" +  $json.request.id  +\n              \"\\nเรื่อง:\" +  $json.request.subject  +\n              \"\\nรายละเอียด: \" + $json.request.description +\n              \"\\nวันที่แจ้ง: \" + $json.request.created_time.display_value\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6208,
+        688
+      ],
+      "id": "33deecb9-fcf5-4a15-884c-3273309eece3",
+      "name": "Line_Reply_Report_Created2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ยกเลิกการแจ้งปัญหาแล้ว\\nหากต้องการเริ่มใหม่พิมพ์ แจ้งปัญหา\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6208,
+        880
+      ],
+      "id": "d5885eac-d2bf-4f7e-87ca-37fda1d05e0f",
+      "name": "Line_Reply_Report_Created3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาพิมพ์เฉพาะ\\n- ยืนยัน\\n- ยกเลิก\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5984,
+        1104
+      ],
+      "id": "fd86bf5d-f09b-4b04-bac9-3182a57cb8bc",
+      "name": "Line_Reply_Report_Created",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8pU5wk84looDaUJJ",
+          "name": "Header Auth account Line"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('IF_Is_Text_Message').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาเลือกเมนู\\nหรือพิมพ์ ติดตามงาน \\nพิมพ์ แจ้งปัญหา\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3328,
+        -272
+      ],
+      "id": "dfc79ca0-db00-48e2-9c80-f3cf1e1635e4",
+      "name": "Line_Reply_Main_Menu1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e31f4057-89dc-452e-ab50-ddd9fafe861f",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2896,
+        2256
+      ],
+      "id": "65cd71d0-e6d8-43e2-b8aa-3daeb61ab221",
+      "name": "Webhook_LINE_In1",
+      "webhookId": "e31f4057-89dc-452e-ab50-ddd9fafe861f"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseKey": "ok"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3104,
+        2256
+      ],
+      "id": "b58c083b-6ed0-4b5f-8ec5-019d4c2fced5",
+      "name": "Respond_200_OK"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = typeof $json.body === 'string' ? JSON.parse($json.body) : ($json.body ?? $json);\nconst event = raw.events?.[0] ?? {};\n\nreturn [{\n  json: {\n    eventType: event.type ?? '',\n    messageType: event.message?.type ?? '',\n    lineUserId: event.source?.userId ?? '',\n    replyToken: event.replyToken ?? '',\n    text: (event.message?.text ?? '').trim(),\n    rawEvent: event\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3312,
+        2256
+      ],
+      "id": "ad561c2a-af1d-4558-890b-fc89c5c9ce2b",
+      "name": "Code_Parse_Line_Event"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "12bae100-93fe-4f56-9ada-e9de4ee708d8",
+              "leftValue": "={{ $json.eventType }}",
+              "rightValue": "message",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c1a08eea-a3f6-49e0-8168-27d5efec3d41",
+              "leftValue": "={{ $json.messageType }}",
+              "rightValue": "text",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3520,
+        2256
+      ],
+      "id": "11a3aab5-0015-48d9-a2a2-ac43fed46fd5",
+      "name": "IF_Supported_Event"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "xuP5LRKV9JEadnqR",
+          "mode": "list",
+          "cachedResultName": "line_session_state",
+          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/xuP5LRKV9JEadnqR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            },
+            {
+              "keyName": "state",
+              "keyValue": "REGISTER_WAIT_IDENTIFIER"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3472,
+        1760
+      ],
+      "id": "a8a86107-7991-4496-b1ef-4cf169e920b9",
+      "name": "DT_Get_Session_By_LineUser",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "xuP5LRKV9JEadnqR",
+          "mode": "list",
+          "cachedResultName": "line_session_state",
+          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/xuP5LRKV9JEadnqR"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "line_user_id": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}",
+            "state": "=REGISTER_WAIT_IDENTIFIER",
+            "step_started_at": "={{ $now }}",
+            "expires_at": "={{ $now.plus({ minutes: 15 }) }}",
+            "updated_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "line_user_id",
+              "displayName": "line_user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "temp_value",
+              "displayName": "temp_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "step_started_at",
+              "displayName": "step_started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expires_at",
+              "displayName": "expires_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4688,
+        1936
+      ],
+      "id": "79012cd4-ed1b-406f-8950-2e4db7afcd09",
+      "name": "DT_Upsert_Register_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bb675674-efcf-4f8c-a528-4ea982a904fd",
+              "leftValue": "={{ !!$json.line_user_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3248,
+        1760
+      ],
+      "id": "03db860d-c845-4278-ba6a-96b0814003e8",
+      "name": "IF_Already_Registered",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"คุณลงทะเบียนแล้ว\\nพิมพ์ \\\"งานของฉัน\\\" เพื่อเริ่มใช้งาน\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4176,
+        1936
+      ],
+      "id": "8a42b3e9-1297-49b8-a99b-3dcaa45e0bc6",
+      "name": "HTTP_Reply_Already_Registered",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8pU5wk84looDaUJJ",
+          "name": "Header Auth account Line"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code_Parse_Line_Event').item.json.eventType === 'follow' || $('Code_Parse_Line_Event').item.json.text === 'ลงทะเบียน' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "102dc8e2-1b4b-4010-a2e9-d02e55cdf31f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bd305e38-fead-43c9-be4b-5b8e2e5d91d1",
+                    "leftValue": "={{ $('DT_Get_Session_By_LineUser').first().json.state === 'REGISTER_WAIT_IDENTIFIER' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b1771f79-da23-4ac2-9e6e-d220c797f0e6",
+                    "leftValue": "=",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        4336,
+        2224
+      ],
+      "id": "6df2483c-4cf8-4db3-9aeb-46f091b3401e",
+      "name": "Switch_Register_Path",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5120,
+        2016
+      ],
+      "id": "baa25d49-1dae-41fd-b447-2217ab530046",
+      "name": "HTTP_Search_Technician_SDP",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5328,
+        2016
+      ],
+      "id": "8e4ecb16-510e-42ed-b780-03feedfa7d3b",
+      "name": "Code_Normalize_SDP_Result",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ff783610-f7a7-4899-85f8-4356c79b5f3b",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5536,
+        2016
+      ],
+      "id": "461e983d-b867-4107-af87-95a7dad2d6b4",
+      "name": "IF_Found_Technician",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4688,
+        2144
+      ],
+      "id": "3986db98-5432-481e-9e86-ae9abd8d0009",
+      "name": "Code_Normalize_Identifier",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4e3eff77-ecc1-4f23-a2b9-ed84abdd5f56",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4896,
+        2144
+      ],
+      "id": "f05a0d66-e537-4491-bc52-d2a86e19fb59",
+      "name": "IF_Identifier_Valid",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5104,
+        2240
+      ],
+      "id": "61987b6c-f37b-4b70-8c54-38c9ee138fe9",
+      "name": "HTTP_Reply_Invalid_Format",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6688,
+        1984
+      ],
+      "id": "8ffc33d5-a56b-4b70-a087-13c24d42639a",
+      "name": "DT_Check_Bound_By_Technician",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5792,
+        2256
+      ],
+      "id": "1abb2a66-62ce-4d84-a6bf-1bfd71060dfe",
+      "name": "HTTP_Reply_Not_Found",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "75f3e4be-fae9-4538-8ce6-0e0599b564db",
+              "leftValue": "={{ !!$json.technician_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6880,
+        1984
+      ],
+      "id": "18a40ace-055c-4cff-8e24-bb9d4b6a527c",
+      "name": "IF_Already_Bound",
+      "alwaysOutputData": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6448,
+        1664
+      ],
+      "id": "e28b1e3d-2f72-4c56-8211-5bfff2bad22f",
+      "name": "HTTP_Reply_Already_Bound",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6192,
+        2080
+      ],
+      "id": "4f4440ff-680e-42d1-9314-6d560f62b08c",
+      "name": "DT_Upsert_Line_Map",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6192,
+        2272
+      ],
+      "id": "f056b369-b9c6-48d4-9ef3-916d45f57d38",
+      "name": "DT_Delete_Register_Session",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6192,
+        2464
+      ],
+      "id": "641e9149-258b-44fe-b1ac-a23cbd8aacf8",
+      "name": "HTTP_Reply_Register_Success",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4688,
+        2352
+      ],
+      "id": "30772e13-0df7-44af-9789-d363d91f3feb",
+      "name": "HTTP_Reply_Ask_Register",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4896,
+        1936
+      ],
+      "id": "b045cc91-d410-418d-8879-a514dc375ae3",
+      "name": "HTTP_Reply_Ask_Identifier",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oEKFoucthTVgfn4z",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/oEKFoucthTVgfn4z"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3920,
+        1936
+      ],
+      "id": "5c723aa8-237f-4710-8d92-bca7caacdb7d",
+      "name": "DT_If_Map_Exists_By_LineUser",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oEKFoucthTVgfn4z",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/oEKFoucthTVgfn4z"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3920,
+        2240
+      ],
+      "id": "15687024-4e29-4210-9362-12ca97ac02fd",
+      "name": "DT_If_Map_Not_Exists_By_LineUser"
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6192,
+        1664
+      ],
+      "id": "af0602d2-1fa5-4360-924c-0d6ca7ac0af9",
+      "name": "DT_If_Technician_Already_Bound",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6192,
+        1872
+      ],
+      "id": "cdb9f5b9-0a87-407c-a9da-347dfa703456",
+      "name": "DT_If_Technician_Not_Bound",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF_Is_Text_Message": {
+      "main": [
+        [
+          {
+            "node": "IF_Is_Global_Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Line_Reply_Main_Menu1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Parse_LINE_Event": {
+      "main": [
+        [
+          {
+            "node": "IF_Is_Text_Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge_Report_Input_And_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_LINE_In": {
+      "main": [
+        [
+          {
+            "node": "Code_Parse_LINE_Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Track_Session_Exists": {
+      "main": [
+        [
+          {
+            "node": "Code_Handle_Ticket_Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Is_Command_Track": {
+      "main": [
+        [
+          {
+            "node": "Code_Prepare_Track_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Prepare_Track_Session": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Upsert_Track_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Upsert_Track_Session": {
+      "main": [
+        [
+          {
+            "node": "LINE_Reply_Ask_Ticket_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Handle_Ticket_Input": {
+      "main": [
+        [
+          {
+            "node": "Code_Validate_Ticket_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Validate_Ticket_ID": {
+      "main": [
+        [
+          {
+            "node": "IF_Ticket_Format_OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Ticket_Format_OK": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Get_Ticket_Status_SDP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Track_Session_Not_Exists": {
+      "main": [
+        [
+          {
+            "node": "IF_Is_Command_Track",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Clean_Description": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Ticket_Status1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Report_Session_Not_Exists": {
+      "main": [
+        [
+          {
+            "node": "IF_Is_Command_Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Is_Command_Report": {
+      "main": [
+        [
+          {
+            "node": "Code_Create_Report_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Create_Report_Session": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Upsert_Report_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_If_Report_Session_Exists": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Get_Report_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Get_Report_Session": {
+      "main": [
+        [
+          {
+            "node": "Merge_Report_Input_And_Session",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Switch_Report_Current_Step": {
+      "main": [
+        [
+          {
+            "node": "Code_Save_Reporter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code_Save_Subject",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code_Save_Detail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code_Prepare_Confirm_Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Save_Reporter": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Update_Report_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Update_Report_Session": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Ask_Subject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Save_Subject": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Update_Report_Session_2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Save_Detail": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Update_Report_Session_3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Prepare_Confirm_Action": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Create_Issue_SDP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DataTable_Delete_Report_Session_Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Line_Reply_Report_Created",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Get_Ticket_Status_SDP": {
+      "main": [
+        [
+          {
+            "node": "Code_Clean_Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Create_Issue_SDP": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Report_Created2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Upsert_Report_Session": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Ask_Reporter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge_Report_Input_And_Session": {
+      "main": [
+        [
+          {
+            "node": "Switch_Report_Current_Step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Update_Report_Session_2": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Ask_Detail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Update_Report_Session_3": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Confirm_Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Delete_Report_Session_Cancel": {
+      "main": [
+        [
+          {
+            "node": "Line_Reply_Report_Created3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Is_Global_Cancel": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Delete_Any_Active_Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DataTable_If_Report_Session_Not_Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DataTable_If_Report_Session_Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DataTable_If_Track_Session_Not_Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DataTable_If_Track_Session_Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataTable_Delete_Any_Active_Session": {
+      "main": [
+        [
+          {
+            "node": "LINE_Reply_Cancelled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Line_Reply_Ticket_Status1": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Delete_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Line_Reply_Report_Created2": {
+      "main": [
+        [
+          {
+            "node": "DataTable_Delete_Report_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_LINE_In1": {
+      "main": [
+        [
+          {
+            "node": "Respond_200_OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond_200_OK": {
+      "main": [
+        [
+          {
+            "node": "Code_Parse_Line_Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Parse_Line_Event": {
+      "main": [
+        [
+          {
+            "node": "IF_Supported_Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Supported_Event": {
+      "main": [
+        [
+          {
+            "node": "DT_If_Map_Exists_By_LineUser",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DT_If_Map_Not_Exists_By_LineUser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_Get_Session_By_LineUser": {
+      "main": [
+        []
+      ]
+    },
+    "IF_Already_Registered": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Switch_Register_Path": {
+      "main": [
+        [
+          {
+            "node": "DT_Upsert_Register_Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code_Normalize_Identifier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Ask_Register",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Search_Technician_SDP": {
+      "main": [
+        [
+          {
+            "node": "Code_Normalize_SDP_Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Normalize_SDP_Result": {
+      "main": [
+        [
+          {
+            "node": "IF_Found_Technician",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Normalize_Identifier": {
+      "main": [
+        [
+          {
+            "node": "IF_Identifier_Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Identifier_Valid": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Search_Technician_SDP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Invalid_Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF_Found_Technician": {
+      "main": [
+        [
+          {
+            "node": "DT_If_Technician_Already_Bound",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DT_If_Technician_Not_Bound",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DT_Upsert_Line_Map",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DT_Delete_Register_Session",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP_Reply_Register_Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Not_Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_Check_Bound_By_Technician": {
+      "main": [
+        []
+      ]
+    },
+    "IF_Already_Bound": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "DT_Upsert_Line_Map": {
+      "main": [
+        []
+      ]
+    },
+    "DT_Delete_Register_Session": {
+      "main": [
+        []
+      ]
+    },
+    "DT_Upsert_Register_Session": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_Ask_Identifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Line_Reply_Report_Created": {
+      "main": [
+        []
+      ]
+    },
+    "DT_If_Map_Exists_By_LineUser": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_Already_Registered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_If_Map_Not_Exists_By_LineUser": {
+      "main": [
+        [
+          {
+            "node": "Switch_Register_Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_If_Technician_Already_Bound": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_Already_Bound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dba06bd9-6ee1-475c-85c6-21813f85049b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "688ff6b74e52f96e06a9d3424e117528bd16442e2547584a376a83878cec4205"
+  },
+  "id": "6rybzvJIqmq95Ty2",
+  "tags": []
+}

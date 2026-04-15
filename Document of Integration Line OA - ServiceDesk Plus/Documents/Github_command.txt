@@ -1,0 +1,21 @@
+// ตั้งค่า Git ครั้งแรก (บน Terminal/Command Prompt)
+ตั้งค่าชื่อผู้ใช้: git config --global user.name "Your Name"
+ตั้งค่าอีเมล: git config --global user.email "youremail@example.com"
+
+// สร้าง Repository (ที่เก็บโปรเจกต์) บน GitHub
+คลิกปุ่ม "+" มุมขวาบน > New repository
+ตั้งชื่อ Repo และคลิก Create repository
+
+// นำโปรเจกต์ขึ้น GitHub (Push)
+เปิด Terminal หรือ VS Code ในโฟลเดอร์โปรเจกต์ของคุณ
+git init (สร้างที่เก็บไฟล์ภายในเครื่อง)
+git add . (เลือกไฟล์ทั้งหมด)
+git commit -m "first commit" (บันทึกเวอร์ชัน)
+git branch -M main (ตั้งชื่อสาขาหลัก)
+git remote add origin <URL-REPO-ของคุณ> (เชื่อมเครื่องกับ GitHub)
+git push -u origin main (อัปโหลดขึ้น GitHub) 
+
+// คำสั่งพื้นฐานที่ควรทราบ
+git clone <url>: ดึงโปรเจกต์จาก GitHub มาลงเครื่อง
+git pull: ดึงข้อมูลล่าสุดจาก GitHub ลงมาที่เครื่อง
+git push: อัปโหลดข้อมูลจากเครื่องขึ้น GitHub 
