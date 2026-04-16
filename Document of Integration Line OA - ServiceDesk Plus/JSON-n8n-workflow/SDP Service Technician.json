@@ -3,1783 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "ed55fbf8-4560-4dd9-b330-bc4f0cebd15b",
-              "leftValue": "={{ $json.isTextMessage }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        3120,
-        -368
-      ],
-      "id": "a763a631-7073-4103-aaf7-66dc21b1733d",
-      "name": "IF_Is_Text_Message",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const event = $json.body?.events?.[0] ?? $json.events?.[0] ?? {};\n\nconst isTextMessage =\n  event.type === 'message' &&\n  event.message?.type === 'text';\n\nconst text = isTextMessage ? (event.message.text ?? '').trim() : '';\n\nreturn [\n  {\n    json: {\n      eventType: event.type ?? '',\n      messageType: event.message?.type ?? '',\n      isTextMessage,\n\n      userId: event.source?.userId ?? '',\n      replyToken: event.replyToken ?? '',\n\n      text,\n      textNormalized: text.toLowerCase(),\n\n      timestamp: event.timestamp ?? Date.now()\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2912,
-        -224
-      ],
-      "id": "3d1595f6-317b-4d35-aefd-c8c082721f4b",
-      "name": "Code_Parse_LINE_Event",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "e31f4057-89dc-452e-ab50-ddd9fafe861f",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        2704,
-        -224
-      ],
-      "id": "e2d9b023-874a-4f5a-800d-cc1d583520e4",
-      "name": "Webhook_LINE_In",
-      "webhookId": "e31f4057-89dc-452e-ab50-ddd9fafe861f",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "09b4d10b-d8e4-4f4a-a97f-e26531ee4e38",
-              "leftValue": "={{ $json.textNormalized }}",
-              "rightValue": "ติดตามงาน",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        4384,
-        -48
-      ],
-      "id": "0b37bb01-85f5-4245-8baf-76565027b2c3",
-      "name": "IF_Is_Command_Track",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "rowExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "track_ticket"
-            },
-            {
-              "keyName": "currentStep",
-              "keyValue": "ask_ticket_id"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4144,
-        -240
-      ],
-      "id": "e8f6915f-3c14-45c3-8ed2-ace60d5ce927",
-      "name": "DataTable_If_Track_Session_Exists",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "return [\n  {\n    json: {\n      userId: $input.first().json.userId,\n      currentMenu: 'track_ticket',\n      currentStep: 'ask_ticket_id',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $input.first().json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),\n      replyToken: $input.first().json.replyToken\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4640,
-        -48
-      ],
-      "id": "8c71fb20-0eac-41f9-9779-4d1c7a52637b",
-      "name": "Code_Prepare_Track_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "userId": "={{ $json.userId }}",
-            "currentMenu": "={{ $json.currentMenu }}",
-            "currentStep": "={{ $json.currentStep }}",
-            "status": "={{ $json.status }}",
-            "payloadJson": "={{ $json.payloadJson }}",
-            "lastUserText": "={{ $json.lastUserText }}",
-            "expireAt": "={{ $json.expireAt }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "userId",
-              "displayName": "userId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "currentMenu",
-              "displayName": "currentMenu",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "currentStep",
-              "displayName": "currentStep",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "payloadJson",
-              "displayName": "payloadJson",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "lastUserText",
-              "displayName": "lastUserText",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "expireAt",
-              "displayName": "expireAt",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4800,
-        -48
-      ],
-      "id": "a2f2d983-197c-4106-bc3a-1e9ed060f205",
-      "name": "DataTable_Upsert_Track_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const ticketId = ($json.text || '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n      ticketId\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4384,
-        -240
-      ],
-      "id": "9a1d84c7-b0b0-4146-836e-c22ed84488a8",
-      "name": "Code_Handle_Ticket_Input",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const ticketId = ($json.ticketId || '').trim();\n\n// ปรับ regex ให้ตรงกับระบบจริงของคุณ\nconst isTicketFormatOk = /^[0-9]+$/.test(ticketId);\n\nreturn [\n  {\n    json: {\n      ...$json,\n      isTicketFormatOk\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4592,
-        -240
-      ],
-      "id": "fc3b37a7-8b4a-4f6b-adfe-14af057131c9",
-      "name": "Code_Validate_Ticket_ID",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "91ee5ba4-d7d4-4adb-a90c-65c6791c19da",
-              "leftValue": "={{ $json.isTicketFormatOk }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        4800,
-        -240
-      ],
-      "id": "78244f0d-e728-4e0e-a58f-412b3e0b5014",
-      "name": "IF_Ticket_Format_OK",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.response.sentMessages[0].id }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "track_ticket"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5728,
-        -448
-      ],
-      "id": "371cb1b7-e1ed-4fab-b990-f300335c9383",
-      "name": "DataTable_Delete_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "rowNotExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "track_ticket"
-            },
-            {
-              "keyName": "currentStep",
-              "keyValue": "ask_ticket_id"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4144,
-        -48
-      ],
-      "id": "5fcb29fd-c08f-4e02-8319-e296bdd9ad31",
-      "name": "DataTable_If_Track_Session_Not_Exists",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "function cleanDescription(html) {\n  if (!html) return '';\n\n  return html\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/div>/gi, '\\n')\n    .replace(/<div[^>]*>/gi, '')\n    .replace(/<[^>]+>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/&#39;/g, \"'\")\n    .replace(/\\n\\s*\\n+/g, '\\n')\n    .trim();\n}\n\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      description_clean: cleanDescription($input.first().json.request.description)\n    }\n  };\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5232,
-        -448
-      ],
-      "id": "ffe25beb-3e28-4035-be9d-1e006634fa2e",
-      "name": "Code_Clean_Description",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "rowExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4112,
-        720
-      ],
-      "id": "c5febcff-b61b-426a-abad-e356db79d431",
-      "name": "DataTable_If_Report_Session_Exists",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "rowNotExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4112,
-        960
-      ],
-      "id": "9cbc118c-ebf6-4a25-b197-e089869b04bc",
-      "name": "DataTable_If_Report_Session_Not_Exists",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "211c2679-b9c5-4734-85a3-5a45e52e30ba",
-              "leftValue": "={{$json.textNormalized}}",
-              "rightValue": "แจ้งปัญหา",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        4320,
-        960
-      ],
-      "id": "05ee6113-561b-45cb-bbf7-445fd39673a4",
-      "name": "IF_Is_Command_Report",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "return [\n  {\n    json: {\n      userId: $json.userId,\n      currentMenu: 'report_issue',\n      currentStep: 'ask_reporter',\n      status: 'active',\n      payloadJson: JSON.stringify({}),\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString(),\n      expireAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),\n      replyToken: $json.replyToken\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4576,
-        960
-      ],
-      "id": "cda227c7-b50f-4d99-99b9-5cfe0ac86f8e",
-      "name": "Code_Create_Report_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4320,
-        720
-      ],
-      "id": "ebf4d3d9-b79d-4928-8598-51554bb66941",
-      "name": "DataTable_Get_Report_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        4544,
-        496
-      ],
-      "id": "3ed6867c-1b4f-49e2-89f0-50816faeb7bf",
-      "name": "Merge_Report_Input_And_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.currentStep }}",
-                    "rightValue": "=ask_reporter",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "8a3beb49-6df7-4846-ae64-7cb3b4001770"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "836a8cf7-5f4a-478d-9a4f-d5708a0fdcc4",
-                    "leftValue": "={{$json.currentStep}}",
-                    "rightValue": "ask_subject",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "07626c44-0c3e-449e-9bbf-593c064b6d6d",
-                    "leftValue": "={{$json.currentStep}}",
-                    "rightValue": "ask_detail",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "cb0064ab-fe92-4c11-bb0b-5b97192f01fe",
-                    "leftValue": "={{$json.currentStep}}",
-                    "rightValue": "confirm_submit",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        5008,
-        464
-      ],
-      "id": "c3c4140b-8764-41af-a69f-be2e4ceccaf1",
-      "name": "Switch_Report_Current_Step",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\n\npayload.reporterName = $json.text;\n\nreturn [\n  {\n    json: {\n      ...$json,\n      payloadJson: JSON.stringify(payload),\n      currentStep: 'ask_subject',\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString()\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5312,
-        112
-      ],
-      "id": "966c0c66-d2aa-4ef3-a83f-08cd62b3e5a0",
-      "name": "Code_Save_Reporter",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\n\npayload.subject = $json.text;\n\nreturn [\n  {\n    json: {\n      ...$json,\n      payloadJson: JSON.stringify(payload),\n      currentStep: 'ask_detail',\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString()\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5312,
-        288
-      ],
-      "id": "3f440f97-6e4d-410b-a78c-8f9e49f6e3a2",
-      "name": "Code_Save_Subject",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{$json.userId}}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "payloadJson": "={{ $json.payloadJson }}",
-            "currentStep": "={{ $json.currentStep }}",
-            "lastUserText": "={{ $json.lastUserText }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "userId",
-              "displayName": "userId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "currentMenu",
-              "displayName": "currentMenu",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "currentStep",
-              "displayName": "currentStep",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "payloadJson",
-              "displayName": "payloadJson",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "lastUserText",
-              "displayName": "lastUserText",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "expireAt",
-              "displayName": "expireAt",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5536,
-        112
-      ],
-      "id": "1628a2cc-2f7d-40ab-9318-d1037a441272",
-      "name": "DataTable_Update_Report_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\n\npayload.detail = $json.text;\n\nreturn [\n  {\n    json: {\n      ...$json,\n      payloadJson: JSON.stringify(payload),\n      currentStep: 'confirm_submit',\n      lastUserText: $json.text,\n      updatedAt: new Date().toISOString(),\n      reporterName: payload.reporterName || '',\n      subject: payload.subject || '',\n      detail: payload.detail || ''\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5312,
-        464
-      ],
-      "id": "68a1dcd8-7234-45f5-87ef-aa98d4397065",
-      "name": "Code_Save_Detail",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const payload = JSON.parse($json.payloadJson || '{}');\nconst action = ($json.textNormalized || '').trim();\n\nreturn [\n  {\n    json: {\n      ...$json,\n      action,\n      reporterName: payload.reporterName || '',\n      subject: payload.subject || '',\n      detail: payload.detail || ''\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5312,
-        720
-      ],
-      "id": "50361535-ceb8-4d83-9948-1ec23ad95115",
-      "name": "Code_Prepare_Confirm_Action",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{$json.action}}",
-                    "rightValue": "ยืนยัน",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "bf75e1bc-0481-4cba-ae37-69ca9b0042e2"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "b25e204f-294d-4195-b84c-b234effd6beb",
-                    "leftValue": "={{$json.action}}",
-                    "rightValue": "ยกเลิก",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "f57d8ec4-de13-4ec8-9dd8-562d0629326b",
-                    "leftValue": "={{$json.action}}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        5552,
-        704
-      ],
-      "id": "148d82a0-1933-4fe3-8d11-3100080e745a",
-      "name": "Switch",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=http://host.docker.internal:80/api/v3/requests",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Accept",
-              "value": "application/vnd.manageengine.sdp.v3+json"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/x-www-form-urlencoded"
-            }
-          ]
-        },
-        "sendBody": true,
-        "contentType": "form-urlencoded",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "input_data",
-              "value": "={\n    \"request\": {\n        \"subject\": {{ $json.subject }},\n        \"description\": {{ $json.detail }},\n        \"requester\": {\n            \"id\": \"4\",\n            \"name\": \"administrator\"\n        },\n        \"status\": {\n            \"name\": \"Open\"\n        }\n    }\n}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5984,
-        688
-      ],
-      "id": "c3eba585-5835-48e9-8f94-fbe417b54240",
-      "name": "HTTP_Create_Issue_SDP",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "url": "={{'http://host.docker.internal:80/api/v3/requests/' + $json.text}}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5024,
-        -448
-      ],
-      "id": "913c9f11-0e60-4040-8423-5853f2463e7b",
-      "name": "HTTP_Get_Ticket_Status_SDP",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $('Switch').item.json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        6432,
-        688
-      ],
-      "id": "a460e2cf-3845-4a5b-9238-d55ea54eea01",
-      "name": "DataTable_Delete_Report_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "upsert",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $json.userId }}"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "userId": "={{ $json.userId }}",
-            "currentMenu": "={{ $json.currentMenu }}",
-            "currentStep": "={{ $json.currentStep }}",
-            "status": "={{ $json.status }}",
-            "payloadJson": "={{ $json.payloadJson }}",
-            "lastUserText": "={{ $json.lastUserText }}",
-            "expireAt": "={{ $json.expireAt }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "userId",
-              "displayName": "userId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "currentMenu",
-              "displayName": "currentMenu",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "currentStep",
-              "displayName": "currentStep",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "payloadJson",
-              "displayName": "payloadJson",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "lastUserText",
-              "displayName": "lastUserText",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "expireAt",
-              "displayName": "expireAt",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4800,
-        960
-      ],
-      "id": "003845e5-1f19-41a3-b476-ffe56783141f",
-      "name": "DataTable_Upsert_Report_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{$json.userId}}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "payloadJson": "={{ $json.payloadJson }}",
-            "currentStep": "={{ $json.currentStep }}",
-            "lastUserText": "={{ $json.lastUserText }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "userId",
-              "displayName": "userId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "currentMenu",
-              "displayName": "currentMenu",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "currentStep",
-              "displayName": "currentStep",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "payloadJson",
-              "displayName": "payloadJson",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "lastUserText",
-              "displayName": "lastUserText",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "expireAt",
-              "displayName": "expireAt",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5536,
-        288
-      ],
-      "id": "cba98b29-0d35-41b9-8550-fe163f608e8a",
-      "name": "DataTable_Update_Report_Session_2",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{$json.userId}}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "active"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "payloadJson": "={{ $json.payloadJson }}",
-            "currentStep": "={{ $json.currentStep }}",
-            "lastUserText": "={{ $json.lastUserText }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "userId",
-              "displayName": "userId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "currentMenu",
-              "displayName": "currentMenu",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "currentStep",
-              "displayName": "currentStep",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "payloadJson",
-              "displayName": "payloadJson",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "lastUserText",
-              "displayName": "lastUserText",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "expireAt",
-              "displayName": "expireAt",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5536,
-        464
-      ],
-      "id": "7599cb41-2469-4c51-9d8a-3f9e5169b30a",
-      "name": "DataTable_Update_Report_Session_3",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{ $('Switch').item.json.userId }}"
-            },
-            {
-              "keyName": "currentMenu",
-              "keyValue": "report_issue"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5984,
-        880
-      ],
-      "id": "ebfb1365-b530-4e60-aa91-8052e121cae6",
-      "name": "DataTable_Delete_Report_Session_Cancel",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "d876106c-742e-4c7f-8570-33ed00194301",
-              "leftValue": "={{ $json.textNormalized }}",
-              "rightValue": "ยกเลิก",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        3328,
-        -464
-      ],
-      "id": "5dace78a-3ffb-4e16-877e-e7b465eaf1ab",
-      "name": "IF_Is_Global_Cancel",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "value": "egRZa85H3Urgk46T",
-          "mode": "list",
-          "cachedResultName": "line_sessions",
-          "cachedResultUrl": "/projects/P3ltRca2BwbSlL7O/datatables/egRZa85H3Urgk46T"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "userId",
-              "keyValue": "={{$json.userId}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        3536,
-        -592
-      ],
-      "id": "04179f79-cd3c-474e-880f-c6769b2789e9",
-      "name": "DataTable_Delete_Any_Active_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาระบุ Ticket ID:\\nหรือพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5024,
-        -48
-      ],
-      "id": "d26dedc5-d3dd-4513-b4c8-3b2b34ee6f14",
-      "name": "LINE_Reply_Ask_Ticket_ID",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('IF_Is_Text_Message').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ยกเลิกการทำรายการแล้ว\\nหากต้องการเริ่มใหม่ พิมพ์เมนูที่ต้องการอีกครั้ง\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        3760,
-        -592
-      ],
-      "id": "9c2b71c2-6113-4076-9c45-dc2d8d792caa",
-      "name": "LINE_Reply_Cancelled",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5024,
-        -240
-      ],
-      "id": "1f5bacef-52c9-4adc-b19e-f8a8b3d8b625",
-      "name": "Line_Reply_Invalid_Ticket1",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"# ผลการติดตามงาน Ticket ID: \" + $json.request.id +\n              \"\\n\\nผู้แจ้ง: \" + $json.request.requester.name +\n              \"\\nหัวข้อ: \" + $json.request.subject +\n              \"\\nรายละเอียด: \" + $json.description_clean +\n              \"\\nสถานะ: \" + $json.request.status.name +\n              \"\\nแจ้งเมื่อ: \" +  $json.request.created_time.display_value +\n              \"\\nผู้รับผิดชอบ: \" + \n              \"\\nโทร: \" + \n              \"\\nอัปเดตล่าสุด: \" + $json.request.last_updated_time\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5472,
-        -448
-      ],
-      "id": "84f6b202-7f7c-4e98-a19b-1af39ce6614b",
-      "name": "Line_Reply_Ticket_Status1",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"เรื่อง:\\n\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5824,
-        112
-      ],
-      "id": "905da871-9fd3-42c9-94d5-aee31299ad40",
-      "name": "Line_Reply_Ask_Subject",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รายละเอียด:\\n\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5824,
-        288
-      ],
-      "id": "ad5e190f-2543-43df-8164-e922a2f84dcc",
-      "name": "Line_Reply_Ask_Detail",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รูปแบบ Ticket ID ไม่ถูกต้อง กรุณาระบุใหม่อีกครั้ง\\nพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5824,
-        464
-      ],
-      "id": "7bf51990-b4c5-4094-917d-86efa27cddd9",
-      "name": "Line_Reply_Confirm_Report",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณากรอกข้อมูลแจ้งปัญหา\\nผู้แจ้ง:\\nหรือพิมพ์ 'ยกเลิก' เพื่อออกจากเมนูนี้\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5040,
-        960
-      ],
-      "id": "6fe91d88-41e5-41c6-a520-54d006643164",
-      "name": "Line_Reply_Ask_Reporter",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"บันทึกการแจ้งปัญหาเรียบร้อยแล้ว\" +\n              \"\\nTicket ID: \" +  $json.request.id  +\n              \"\\nเรื่อง:\" +  $json.request.subject  +\n              \"\\nรายละเอียด: \" + $json.request.description +\n              \"\\nวันที่แจ้ง: \" + $json.request.created_time.display_value\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        6208,
-        688
-      ],
-      "id": "33deecb9-fcf5-4a15-884c-3273309eece3",
-      "name": "Line_Reply_Report_Created2",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ยกเลิกการแจ้งปัญหาแล้ว\\nหากต้องการเริ่มใหม่พิมพ์ แจ้งปัญหา\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        6208,
-        880
-      ],
-      "id": "d5885eac-d2bf-4f7e-87ca-37fda1d05e0f",
-      "name": "Line_Reply_Report_Created3",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_LINE_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาพิมพ์เฉพาะ\\n- ยืนยัน\\n- ยกเลิก\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5984,
-        1104
-      ],
-      "id": "fd86bf5d-f09b-4b04-bac9-3182a57cb8bc",
-      "name": "Line_Reply_Report_Created",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "8pU5wk84looDaUJJ",
-          "name": "Header Auth account Line"
-        }
-      },
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.line.me/v2/bot/message/reply",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('IF_Is_Text_Message').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาเลือกเมนู\\nหรือพิมพ์ ติดตามงาน \\nพิมพ์ แจ้งปัญหา\"\n      }\n    ]\n  })\n}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        3328,
-        -272
-      ],
-      "id": "dfc79ca0-db00-48e2-9c80-f3cf1e1635e4",
-      "name": "Line_Reply_Main_Menu1",
-      "disabled": true
-    },
-    {
-      "parameters": {
         "httpMethod": "POST",
         "path": "e31f4057-89dc-452e-ab50-ddd9fafe861f",
         "responseMode": "responseNode",
@@ -1790,10 +13,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        2896,
-        2256
+        -1472,
+        4592
       ],
-      "id": "65cd71d0-e6d8-43e2-b8aa-3daeb61ab221",
+      "id": "a460804d-1a28-40a2-9411-6a693fca5f51",
       "name": "Webhook_LINE_In1",
       "webhookId": "e31f4057-89dc-452e-ab50-ddd9fafe861f"
     },
@@ -1807,10 +30,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        3104,
-        2256
+        -1248,
+        4592
       ],
-      "id": "b58c083b-6ed0-4b5f-8ec5-019d4c2fced5",
+      "id": "3c562009-fd63-4d64-93ed-eed6e6ee1489",
       "name": "Respond_200_OK"
     },
     {
@@ -1820,10 +43,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3312,
-        2256
+        -1024,
+        4592
       ],
-      "id": "ad561c2a-af1d-4558-890b-fc89c5c9ce2b",
+      "id": "6c1c1a62-349e-4102-849a-1e7a993df546",
       "name": "Code_Parse_Line_Event"
     },
     {
@@ -1837,46 +60,38 @@
           },
           "conditions": [
             {
-              "id": "12bae100-93fe-4f56-9ada-e9de4ee708d8",
-              "leftValue": "={{ $json.eventType }}",
-              "rightValue": "message",
+              "id": "a6537788-4783-4e60-9932-4b8871b8080d",
+              "leftValue": "={{ ($('Code_Parse_Line_Event').item.json.eventType === 'message' && $('Code_Parse_Line_Event').item.json.messageType === 'text') }}",
+              "rightValue": "follow",
               "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            },
-            {
-              "id": "c1a08eea-a3f6-49e0-8168-27d5efec3d41",
-              "leftValue": "={{ $json.messageType }}",
-              "rightValue": "text",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
               }
             }
           ],
-          "combinator": "and"
+          "combinator": "or"
         },
         "options": {}
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        3520,
-        2256
+        -800,
+        4592
       ],
-      "id": "11a3aab5-0015-48d9-a2a2-ac43fed46fd5",
+      "id": "feba7172-7470-495b-a2c2-91c0d3d26713",
       "name": "IF_Supported_Event"
     },
     {
       "parameters": {
-        "operation": "get",
+        "operation": "upsert",
         "dataTableId": {
           "__rl": true,
-          "value": "xuP5LRKV9JEadnqR",
+          "value": "472DKupY65fiiSq7",
           "mode": "list",
           "cachedResultName": "line_session_state",
-          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/xuP5LRKV9JEadnqR"
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/472DKupY65fiiSq7"
         },
         "matchType": "allConditions",
         "filters": {
@@ -1884,34 +99,8 @@
             {
               "keyName": "line_user_id",
               "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
-            },
-            {
-              "keyName": "state",
-              "keyValue": "REGISTER_WAIT_IDENTIFIER"
             }
           ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        3472,
-        1760
-      ],
-      "id": "a8a86107-7991-4496-b1ef-4cf169e920b9",
-      "name": "DT_Get_Session_By_LineUser",
-      "alwaysOutputData": true,
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "upsert",
-        "dataTableId": {
-          "__rl": true,
-          "value": "xuP5LRKV9JEadnqR",
-          "mode": "list",
-          "cachedResultName": "line_session_state",
-          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/xuP5LRKV9JEadnqR"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -1920,7 +109,8 @@
             "state": "=REGISTER_WAIT_IDENTIFIER",
             "step_started_at": "={{ $now }}",
             "expires_at": "={{ $now.plus({ minutes: 15 }) }}",
-            "updated_at": "={{ $now }}"
+            "updated_at": "={{ $now }}",
+            "temp_value": "\"\""
           },
           "matchingColumns": [],
           "schema": [
@@ -1993,47 +183,11 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        4688,
-        1936
+        160,
+        4496
       ],
-      "id": "79012cd4-ed1b-406f-8950-2e4db7afcd09",
-      "name": "DT_Upsert_Register_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "bb675674-efcf-4f8c-a528-4ea982a904fd",
-              "leftValue": "={{ !!$json.line_user_id }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        3248,
-        1760
-      ],
-      "id": "03db860d-c845-4278-ba6a-96b0814003e8",
-      "name": "IF_Already_Registered",
-      "disabled": true
+      "id": "585f88e8-2e29-4336-ac77-e3ac4c0f3723",
+      "name": "DT_Upsert_Register_Session"
     },
     {
       "parameters": {
@@ -2049,17 +203,865 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        4176,
-        1936
+        -208,
+        5008
       ],
-      "id": "8a42b3e9-1297-49b8-a99b-3dcaa45e0bc6",
+      "id": "6beb3697-b309-46aa-839f-f8d97825e38b",
       "name": "HTTP_Reply_Already_Registered",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8pU5wk84looDaUJJ",
-          "name": "Header Auth account Line"
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
         }
       },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authtoken",
+              "value": "A0DA14FD-7CCC-4D76-B133-BBAD598222EC"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.manageengine.sdp.v3+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input_data",
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        3920
+      ],
+      "id": "8249b7a3-f7d5-4870-8065-806b005d19b9",
+      "name": "HTTP_Search_Technician_SDP"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json;\n\n// ดึงรายการ technicians จาก response\nconst technicians =\n  body.technicians ||\n  body.response?.technicians ||\n  body.message_response?.technicians ||\n  [];\n\n// ข้อมูลที่ผู้ใช้ส่งมา\nconst source = $('Code_Normalize_Identifier').item.json;\nconst employeeIdInput = String(source.employeeIdInput ?? '').trim();\nconst technicianNameInput = String(source.technicianNameInput ?? '').trim();\n\nconst normalize = (s) =>\n  String(s ?? '')\n    .trim()\n    .toLowerCase()\n    .replace(/\\s+/g, ' ');\n\n// normalize input\nconst normalizedInputName = normalize(technicianNameInput);\n\n// กรองเฉพาะคนที่ employee_id ตรง\nconst employeeMatches = technicians.filter((t) => {\n  const empId = String(t.employee_id ?? '').trim();\n  return empId === employeeIdInput;\n});\n\n// กรองต่อด้วยชื่อ\nconst exactMatches = employeeMatches.filter((t) => {\n  const name1 = normalize(t.name);\n  const name2 = normalize(t.display_name);\n  return name1 === normalizedInputName || name2 === normalizedInputName;\n});\n\nlet matchStatus = 'not_found';\nlet tech = null;\n\nif (exactMatches.length === 1) {\n  matchStatus = 'matched';\n  const t = exactMatches[0];\n\n  tech = {\n    id: t.id ?? t.technician_id ?? '',\n    name: t.name ?? t.display_name ?? '',\n    email: t.email_id ?? t.email ?? '',\n    employee_id: t.employee_id ?? '',\n    technician_code: t.technician_code ?? '',\n    is_active: t.is_active ?? true\n  };\n} else if (exactMatches.length > 1) {\n  matchStatus = 'ambiguous';\n} else {\n  matchStatus = 'not_found';\n}\n\nreturn [{\n  json: {\n    ...source,\n    totalTechniciansReturned: technicians.length,\n    employeeMatchesCount: employeeMatches.length,\n    exactMatchesCount: exactMatches.length,\n    matchStatus,\n    foundTechnician: matchStatus === 'matched',\n    technician: tech\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        3920
+      ],
+      "id": "61b4eada-ec6c-4f27-8eda-abe7869d52ed",
+      "name": "Code_Normalize_SDP_Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = ($('Code_Parse_Line_Event').item.json.text ?? '').trim();\n\n// แยกด้วย comma ตัวแรก\nconst parts = text.split(',');\n\n// helper\nconst clean = (s) => (s ?? '').trim();\nconst normalizeName = (s) =>\n  clean(s)\n    .toLowerCase()\n    .replace(/\\s+/g, ' '); // ลดช่องว่างหลายตัวให้เหลือ 1\n\nlet employeeIdInput = '';\nlet technicianNameInput = '';\nlet inputValid = false;\nlet inputError = '';\n\nif (parts.length < 2) {\n  inputError = 'กรุณาส่งข้อมูลในรูปแบบ employee id,ชื่อ';\n} else {\n  employeeIdInput = clean(parts[0]);\n\n  // กรณีชื่อมี comma เกินมา ให้รวมกลับ\n  technicianNameInput = clean(parts.slice(1).join(','));\n\n  if (!employeeIdInput) {\n    inputError = 'ไม่พบ employee id';\n  } else if (!/^\\d+$/.test(employeeIdInput)) {\n    inputError = 'employee id ต้องเป็นตัวเลขเท่านั้น';\n  } else if (!technicianNameInput) {\n    inputError = 'ไม่พบชื่อ technician';\n  } else {\n    inputValid = true;\n  }\n}\n\nreturn [{\n  json: {\n    ...$('Code_Parse_Line_Event').item.json,\n    originalInput: text,\n    employeeIdInput,\n    technicianNameInput,\n    normalizedTechnicianNameInput: normalizeName(technicianNameInput),\n    inputValid,\n    inputError\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        4112
+      ],
+      "id": "d4b537df-1541-4819-bf1a-5e54951fe6b6",
+      "name": "Code_Normalize_Identifier"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4e3eff77-ecc1-4f23-a2b9-ed84abdd5f56",
+              "leftValue": "={{ $json.inputValid }}",
+              "rightValue": "unknown",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        4112
+      ],
+      "id": "8e9f7f08-81dd-4dc7-b932-0b95fa482d49",
+      "name": "IF_Identifier_Valid"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"รูปแบบข้อมูลไม่ถูกต้อง กรุณาส่งในรูปแบบ employee id,ชื่อ\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        4112
+      ],
+      "id": "80c84778-a54b-47e1-b28d-bb851893e3bc",
+      "name": "HTTP_Reply_Invalid_Format",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1088,
+        4304
+      ],
+      "id": "1329b701-d2e3-4500-979f-7226d049b5e4",
+      "name": "HTTP_Reply_Not_Found",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"บัญชี technician นี้ถูกผูกกับ LINE อื่นแล้ว\\nกรุณาติดต่อผู้ดูแลระบบเพื่อรีเซ็ตการผูกบัญชี\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1312,
+        3728
+      ],
+      "id": "a7f423e5-9a13-414a-9e96-7decccdbcdd4",
+      "name": "HTTP_Reply_Already_Bound",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "IbL8fTxOExtKpQBR",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/IbL8fTxOExtKpQBR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "line_user_id": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}",
+            "technician_code": "={{ $('Code_Normalize_SDP_Result').item.json.technician.technician_code }}",
+            "employee_id": "={{ $('Code_Normalize_SDP_Result').item.json.technician.employee_id }}",
+            "technician_name": "={{ $('Code_Normalize_SDP_Result').item.json.technician.name }}",
+            "technician_id": "={{ $('Code_Normalize_SDP_Result').item.json.technician.id }}",
+            "email": "={{ $('Code_Normalize_SDP_Result').item.json.technician.email }}",
+            "is_active": "={{ $('Code_Normalize_SDP_Result').item.json.technician.is_active }}",
+            "notify_morning": "true",
+            "updated_at": "={{ $now }}",
+            "created_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "line_user_id",
+              "displayName": "line_user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "technician_id",
+              "displayName": "technician_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "employee_id",
+              "displayName": "employee_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "technician_code",
+              "displayName": "technician_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "technician_name",
+              "displayName": "technician_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_active",
+              "displayName": "is_active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "notify_morning",
+              "displayName": "notify_morning",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "notify_time",
+              "displayName": "notify_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1312,
+        3920
+      ],
+      "id": "4e93235f-7146-463c-a1a2-456dc84654d1",
+      "name": "DT_Upsert_Line_Map"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "472DKupY65fiiSq7",
+          "mode": "list",
+          "cachedResultName": "line_session_state",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/472DKupY65fiiSq7"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            },
+            {
+              "keyName": "state",
+              "keyValue": "REGISTER_WAIT_IDENTIFIER"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1536,
+        3824
+      ],
+      "id": "5173802d-6ab7-4513-b5ef-30a759af94de",
+      "name": "DT_Delete_Register_Session"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"คุณยังไม่ได้ลงทะเบียนใช้งานระบบ\\nพิมพ์ \\\"ลงทะเบียน\\\" เพื่อเริ่มผูกบัญชีกับ ServiceDesk Plus\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        160,
+        4688
+      ],
+      "id": "ce33b637-a91b-4977-b268-2cdb716c88a6",
+      "name": "HTTP_Reply_Ask_Register",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"กรุณาระบุข้อมูลในรูปแบบ\\nemployee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\\n650123,สมชาย ใจดี\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        384,
+        4496
+      ],
+      "id": "cd83cc1c-4bc3-4b2f-afb0-bafd1bb3e6d2",
+      "name": "HTTP_Reply_Ask_Identifier",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "IbL8fTxOExtKpQBR",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/IbL8fTxOExtKpQBR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -576,
+        5072
+      ],
+      "id": "a8465d31-be2b-4923-a968-fc17c01d51e3",
+      "name": "DT_If_Map_Exists_By_LineUser",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "IbL8fTxOExtKpQBR",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/IbL8fTxOExtKpQBR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        4288
+      ],
+      "id": "0a685d56-a489-43cd-9a92-9b40e5e08fb5",
+      "name": "DT_If_Map_Not_Exists_By_LineUser"
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "IbL8fTxOExtKpQBR",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/IbL8fTxOExtKpQBR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "technician_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        3728
+      ],
+      "id": "1f970ab6-41b0-4691-9e40-3af33b6c7473",
+      "name": "DT_If_Technician_Already_Bound"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "IbL8fTxOExtKpQBR",
+          "mode": "list",
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/IbL8fTxOExtKpQBR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "technician_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        3920
+      ],
+      "id": "31b62bfb-0b8b-415d-9a61-f03b8ef4cbd1",
+      "name": "DT_If_Technician_Not_Bound"
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "472DKupY65fiiSq7",
+          "mode": "list",
+          "cachedResultName": "line_session_state",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/472DKupY65fiiSq7"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            },
+            {
+              "keyName": "state",
+              "keyValue": "REGISTER_WAIT_IDENTIFIER"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        4112
+      ],
+      "id": "fe0b4ebe-1be9-4322-9107-109f077a87fc",
+      "name": "DT_If_Register_Session_Exists"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "472DKupY65fiiSq7",
+          "mode": "list",
+          "cachedResultName": "line_session_state",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/472DKupY65fiiSq7"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            },
+            {
+              "keyName": "state",
+              "keyValue": "=REGISTER_WAIT_IDENTIFIER"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        4688
+      ],
+      "id": "1133f3a5-0389-4961-b814-06c752a61b02",
+      "name": "DT_If_Register_Session_Not_Exists"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$('Code_Parse_Line_Event').item.json.text === 'ลงทะเบียน'}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "102dc8e2-1b4b-4010-a2e9-d02e55cdf31f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Start_Register"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        4688
+      ],
+      "id": "98f0d4f5-97b2-45be-9212-141c36d3b42e",
+      "name": "Switch_Start_Or_Ask"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ลงทะเบียนสำเร็จแล้ว\\n\\nชื่อ: $('Code_Normalize_SDP_Result').item.json.technician.name\\nรหัสพนักงาน: $('Code_Normalize_SDP_Result').item.json.technician.employee_id\\n\\nคุณสามารถพิมพ์ \\\"งานของฉัน\\\" เพื่อเริ่มใช้งาน\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1536,
+        4016
+      ],
+      "id": "7b8f5812-9f41-4da9-9697-e13f0bda532f",
+      "name": "HTTP_Reply_Register_Success",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.matchStatus === 'matched' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "d72a8e3d-4d04-4abd-8a97-b44a2d723c9d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bf4d2297-d4d9-4eec-9a6b-5a2baa84f588",
+                    "leftValue": "={{ $json.matchStatus === 'ambiguous' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        3904
+      ],
+      "id": "c11d2717-5db1-48e5-a7d2-3a697277ee9c",
+      "name": "Switch_Match_Status"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"พบข้อมูล technician มากกว่าหนึ่งรายการที่ตรงกับข้อมูลที่ส่งมา กรุณาติดต่อผู้ดูแลระบบเพื่อตรวจสอบข้อมูล\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1088,
+        4112
+      ],
+      "id": "ec38eb5e-7032-426f-bfea-c874bfa07cc2",
+      "name": "HTTP_Reply_Ambiguous_Technician",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Start Input Message \n",
+        "height": 256,
+        "width": 1120
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1648,
+        4496
+      ],
+      "typeVersion": 1,
+      "id": "f651da7e-dee3-4b9b-b5db-d5ad98732e1e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## The technician has not yet registered.\n",
+        "height": 352,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -320,
+        4496
+      ],
+      "typeVersion": 1,
+      "id": "91213605-b93a-415a-b062-652079f71704",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Workflow Regist\n",
+        "height": 752,
+        "width": 2016,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -320,
+        3712
+      ],
+      "typeVersion": 1,
+      "id": "265ce4d9-6c22-410e-9127-d7520920dbb5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        5488
+      ],
+      "id": "971c989c-f831-4ced-8397-8e2efa450d4f",
+      "name": "DT_Get_Map_By_LineUser",
       "disabled": true
     },
     {
@@ -2076,14 +1078,13 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('Code_Parse_Line_Event').item.json.eventType === 'follow' || $('Code_Parse_Line_Event').item.json.text === 'ลงทะเบียน' }}",
+                    "leftValue": "",
                     "rightValue": "",
                     "operator": {
-                      "type": "boolean",
-                      "operation": "true",
-                      "singleValue": true
+                      "type": "string",
+                      "operation": "equals"
                     },
-                    "id": "102dc8e2-1b4b-4010-a2e9-d02e55cdf31f"
+                    "id": "7279fdf5-ae61-4694-8526-8c63034720ef"
                   }
                 ],
                 "combinator": "and"
@@ -2099,13 +1100,13 @@
                 },
                 "conditions": [
                   {
-                    "id": "bd305e38-fead-43c9-be4b-5b8e2e5d91d1",
-                    "leftValue": "={{ $('DT_Get_Session_By_LineUser').first().json.state === 'REGISTER_WAIT_IDENTIFIER' }}",
+                    "id": "5aae4618-6223-4ae9-9f81-05451a9887d6",
+                    "leftValue": "",
                     "rightValue": "",
                     "operator": {
-                      "type": "boolean",
-                      "operation": "true",
-                      "singleValue": true
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
                     }
                   }
                 ],
@@ -2122,13 +1123,59 @@
                 },
                 "conditions": [
                   {
-                    "id": "b1771f79-da23-4ac2-9e6e-d220c797f0e6",
-                    "leftValue": "=",
+                    "id": "c9cfb005-f4fc-45c3-ad57-0359aef0e2a8",
+                    "leftValue": "",
                     "rightValue": "",
                     "operator": {
-                      "type": "boolean",
-                      "operation": "true",
-                      "singleValue": true
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e043152d-441a-4fba-a185-59b5bbe85c7a",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a13f28bb-6289-4a5c-9c9e-c1307f168cfe",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
                     }
                   }
                 ],
@@ -2142,25 +1189,54 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        4336,
-        2224
+        16,
+        5440
       ],
-      "id": "6df2483c-4cf8-4db3-9aeb-46f091b3401e",
-      "name": "Switch_Register_Path",
+      "id": "494b1f33-5403-4d3c-a12d-97c4a74b6413",
+      "name": "Switch_Main_Command",
       "disabled": true
     },
     {
       "parameters": {
-        "options": {}
+        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authtoken",
+              "value": "A0DA14FD-7CCC-4D76-B133-BBAD598222EC"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.manageengine.sdp.v3+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input_data",
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5120,
-        2016
+        240,
+        5008
       ],
-      "id": "baa25d49-1dae-41fd-b447-2217ab530046",
-      "name": "HTTP_Search_Technician_SDP",
+      "id": "eb4cb975-d84b-4797-aa36-ef61a64f3875",
+      "name": "HTTP_Search_My_Requests",
       "disabled": true
     },
     {
@@ -2170,46 +1246,81 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5328,
-        2016
+        464,
+        5008
       ],
-      "id": "8e4ecb16-510e-42ed-b780-03feedfa7d3b",
-      "name": "Code_Normalize_SDP_Result",
+      "id": "93716e51-7ccd-49b7-8fb2-01b94e46ab91",
+      "name": "Code_Summarize_My_Requests",
       "disabled": true
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "ff783610-f7a7-4899-85f8-4356c79b5f3b",
-              "leftValue": "",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
         "options": {}
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
-        5536,
-        2016
+        688,
+        5008
       ],
-      "id": "461e983d-b867-4107-af87-95a7dad2d6b4",
-      "name": "IF_Found_Technician",
+      "id": "ce1af752-b351-440b-8be7-cd02fd3849ae",
+      "name": "HTTP_Reply_My_Requests_Summary",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authtoken",
+              "value": "A0DA14FD-7CCC-4D76-B133-BBAD598222EC"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.manageengine.sdp.v3+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input_data",
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        5200
+      ],
+      "id": "2381285d-05f1-4232-b9b9-d524406f37d8",
+      "name": "HTTP_Search_My_Open_Requests",
       "disabled": true
     },
     {
@@ -2219,793 +1330,254 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4688,
-        2144
+        464,
+        5200
       ],
-      "id": "3986db98-5432-481e-9e86-ae9abd8d0009",
-      "name": "Code_Normalize_Identifier",
+      "id": "113b07c4-cbec-4a60-9b15-6944ef697e70",
+      "name": "Code_Format_Request_List",
       "disabled": true
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "4e3eff77-ecc1-4f23-a2b9-ed84abdd5f56",
-              "leftValue": "",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        4896,
-        2144
-      ],
-      "id": "f05a0d66-e537-4491-bc52-d2a86e19fb59",
-      "name": "IF_Identifier_Valid",
-      "disabled": true
-    },
-    {
-      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5104,
-        2240
+        688,
+        5200
       ],
-      "id": "61987b6c-f37b-4b70-8c54-38c9ee138fe9",
-      "name": "HTTP_Reply_Invalid_Format",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "list",
-          "value": ""
+      "id": "c38595b5-5daa-4d68-9b61-cdecd8041688",
+      "name": "HTTP_Reply_Request_List",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
         }
       },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        6688,
-        1984
-      ],
-      "id": "8ffc33d5-a56b-4b70-a087-13c24d42639a",
-      "name": "DT_Check_Bound_By_Technician",
-      "alwaysOutputData": true,
       "disabled": true
     },
     {
       "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        5792,
-        2256
-      ],
-      "id": "1abb2a66-62ce-4d84-a6bf-1bfd71060dfe",
-      "name": "HTTP_Reply_Not_Found",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
+        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "id": "75f3e4be-fae9-4538-8ce6-0e0599b564db",
-              "leftValue": "={{ !!$json.technician_id }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        6880,
-        1984
-      ],
-      "id": "18a40ace-055c-4cff-8e24-bb9d4b6a527c",
-      "name": "IF_Already_Bound",
-      "alwaysOutputData": false,
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        6448,
-        1664
-      ],
-      "id": "e28b1e3d-2f72-4c56-8211-5bfff2bad22f",
-      "name": "HTTP_Reply_Already_Bound",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "upsert",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "list",
-          "value": ""
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        6192,
-        2080
-      ],
-      "id": "4f4440ff-680e-42d1-9314-6d560f62b08c",
-      "name": "DT_Upsert_Line_Map",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "list",
-          "value": ""
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        6192,
-        2272
-      ],
-      "id": "f056b369-b9c6-48d4-9ef3-916d45f57d38",
-      "name": "DT_Delete_Register_Session",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        6192,
-        2464
-      ],
-      "id": "641e9149-258b-44fe-b1ac-a23cbd8aacf8",
-      "name": "HTTP_Reply_Register_Success",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        4688,
-        2352
-      ],
-      "id": "30772e13-0df7-44af-9789-d363d91f3feb",
-      "name": "HTTP_Reply_Ask_Register",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        4896,
-        1936
-      ],
-      "id": "b045cc91-d410-418d-8879-a514dc375ae3",
-      "name": "HTTP_Reply_Ask_Identifier",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "operation": "rowExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "oEKFoucthTVgfn4z",
-          "mode": "list",
-          "cachedResultName": "line_technician_map",
-          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/oEKFoucthTVgfn4z"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
+              "name": "Authtoken",
+              "value": "A0DA14FD-7CCC-4D76-B133-BBAD598222EC"
+            },
             {
-              "keyName": "line_user_id",
-              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+              "name": "Accept",
+              "value": "application/vnd.manageengine.sdp.v3+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
             }
           ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        3920,
-        1936
-      ],
-      "id": "5c723aa8-237f-4710-8d92-bca7caacdb7d",
-      "name": "DT_If_Map_Exists_By_LineUser",
-      "alwaysOutputData": false,
-      "executeOnce": false,
-      "retryOnFail": false,
-      "notesInFlow": false
-    },
-    {
-      "parameters": {
-        "operation": "rowNotExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "oEKFoucthTVgfn4z",
-          "mode": "list",
-          "cachedResultName": "line_technician_map",
-          "cachedResultUrl": "/projects/EuBwbfELoBbyR5oZ/datatables/oEKFoucthTVgfn4z"
         },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
             {
-              "keyName": "line_user_id",
-              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+              "name": "input_data",
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
             }
           ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
         }
       },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
-        3920,
-        2240
+        240,
+        5392
       ],
-      "id": "15687024-4e29-4210-9362-12ca97ac02fd",
-      "name": "DT_If_Map_Not_Exists_By_LineUser"
-    },
-    {
-      "parameters": {
-        "operation": "rowExists",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "list",
-          "value": ""
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        6192,
-        1664
-      ],
-      "id": "af0602d2-1fa5-4360-924c-0d6ca7ac0af9",
-      "name": "DT_If_Technician_Already_Bound",
+      "id": "d7fac45a-d7b9-4d4c-b014-92113e367a1b",
+      "name": "HTTP_Search_My_OnHold_Requests",
       "disabled": true
     },
     {
       "parameters": {
-        "operation": "rowNotExists",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "list",
-          "value": ""
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        5392
+      ],
+      "id": "63cac813-d401-44e0-bf5c-43d65a4dabd8",
+      "name": "Code_Format_Request_List1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        688,
+        5392
+      ],
+      "id": "2e7b43fa-e918-4037-9fa7-6af51e5a5161",
+      "name": "HTTP_Reply_Request_List2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
         }
       },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        6192,
-        1872
-      ],
-      "id": "cdb9f5b9-0a87-407c-a9da-347dfa703456",
-      "name": "DT_If_Technician_Not_Bound",
       "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authtoken",
+              "value": "A0DA14FD-7CCC-4D76-B133-BBAD598222EC"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.manageengine.sdp.v3+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input_data",
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        5584
+      ],
+      "id": "385a43fa-d3b4-4f5d-81a3-04f4c8b89c90",
+      "name": "HTTP_Search_My_Today_Requests",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        5584
+      ],
+      "id": "4f035b23-1d1b-432b-9032-cea0b43558c7",
+      "name": "Code_Format_Request_List2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        688,
+        5584
+      ],
+      "id": "8e3851c2-ed21-4aa4-95fb-523e14ca7df7",
+      "name": "HTTP_Reply_Request_List1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        5776
+      ],
+      "id": "d4fa89e0-0d64-45ea-af97-e0f9d778a8e9",
+      "name": "HTTP_Reply_Main_Menu",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Workflow Technician check job\n",
+        "height": 1072,
+        "width": 1264,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -320,
+        4896
+      ],
+      "typeVersion": 1,
+      "id": "706547a7-dc1e-4b8a-a972-99e32537ca79",
+      "name": "Sticky Note3"
     }
   ],
   "pinData": {},
   "connections": {
-    "IF_Is_Text_Message": {
-      "main": [
-        [
-          {
-            "node": "IF_Is_Global_Cancel",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Line_Reply_Main_Menu1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Parse_LINE_Event": {
-      "main": [
-        [
-          {
-            "node": "IF_Is_Text_Message",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Merge_Report_Input_And_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook_LINE_In": {
-      "main": [
-        [
-          {
-            "node": "Code_Parse_LINE_Event",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_If_Track_Session_Exists": {
-      "main": [
-        [
-          {
-            "node": "Code_Handle_Ticket_Input",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF_Is_Command_Track": {
-      "main": [
-        [
-          {
-            "node": "Code_Prepare_Track_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Prepare_Track_Session": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Upsert_Track_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Upsert_Track_Session": {
-      "main": [
-        [
-          {
-            "node": "LINE_Reply_Ask_Ticket_ID",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Handle_Ticket_Input": {
-      "main": [
-        [
-          {
-            "node": "Code_Validate_Ticket_ID",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Validate_Ticket_ID": {
-      "main": [
-        [
-          {
-            "node": "IF_Ticket_Format_OK",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF_Ticket_Format_OK": {
-      "main": [
-        [
-          {
-            "node": "HTTP_Get_Ticket_Status_SDP",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_If_Track_Session_Not_Exists": {
-      "main": [
-        [
-          {
-            "node": "IF_Is_Command_Track",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Clean_Description": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Ticket_Status1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_If_Report_Session_Not_Exists": {
-      "main": [
-        [
-          {
-            "node": "IF_Is_Command_Report",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF_Is_Command_Report": {
-      "main": [
-        [
-          {
-            "node": "Code_Create_Report_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Create_Report_Session": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Upsert_Report_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_If_Report_Session_Exists": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Get_Report_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Get_Report_Session": {
-      "main": [
-        [
-          {
-            "node": "Merge_Report_Input_And_Session",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Switch_Report_Current_Step": {
-      "main": [
-        [
-          {
-            "node": "Code_Save_Reporter",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Code_Save_Subject",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Code_Save_Detail",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Code_Prepare_Confirm_Action",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Save_Reporter": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Update_Report_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Update_Report_Session": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Ask_Subject",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Save_Subject": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Update_Report_Session_2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Save_Detail": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Update_Report_Session_3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code_Prepare_Confirm_Action": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "HTTP_Create_Issue_SDP",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "DataTable_Delete_Report_Session_Cancel",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Line_Reply_Report_Created",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP_Get_Ticket_Status_SDP": {
-      "main": [
-        [
-          {
-            "node": "Code_Clean_Description",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP_Create_Issue_SDP": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Report_Created2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Upsert_Report_Session": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Ask_Reporter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge_Report_Input_And_Session": {
-      "main": [
-        [
-          {
-            "node": "Switch_Report_Current_Step",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Update_Report_Session_2": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Ask_Detail",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Update_Report_Session_3": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Confirm_Report",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Delete_Report_Session_Cancel": {
-      "main": [
-        [
-          {
-            "node": "Line_Reply_Report_Created3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF_Is_Global_Cancel": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Delete_Any_Active_Session",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "DataTable_If_Report_Session_Not_Exists",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DataTable_If_Report_Session_Exists",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DataTable_If_Track_Session_Not_Exists",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DataTable_If_Track_Session_Exists",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DataTable_Delete_Any_Active_Session": {
-      "main": [
-        [
-          {
-            "node": "LINE_Reply_Cancelled",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Line_Reply_Ticket_Status1": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Delete_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Line_Reply_Report_Created2": {
-      "main": [
-        [
-          {
-            "node": "DataTable_Delete_Report_Session",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Webhook_LINE_In1": {
       "main": [
         [
@@ -3055,42 +1627,6 @@
         ]
       ]
     },
-    "DT_Get_Session_By_LineUser": {
-      "main": [
-        []
-      ]
-    },
-    "IF_Already_Registered": {
-      "main": [
-        [],
-        []
-      ]
-    },
-    "Switch_Register_Path": {
-      "main": [
-        [
-          {
-            "node": "DT_Upsert_Register_Session",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Code_Normalize_Identifier",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "HTTP_Reply_Ask_Register",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "HTTP_Search_Technician_SDP": {
       "main": [
         [
@@ -3106,7 +1642,7 @@
       "main": [
         [
           {
-            "node": "IF_Found_Technician",
+            "node": "Switch_Match_Status",
             "type": "main",
             "index": 0
           }
@@ -3142,65 +1678,6 @@
         ]
       ]
     },
-    "IF_Found_Technician": {
-      "main": [
-        [
-          {
-            "node": "DT_If_Technician_Already_Bound",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DT_If_Technician_Not_Bound",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DT_Upsert_Line_Map",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "DT_Delete_Register_Session",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "HTTP_Reply_Register_Success",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "HTTP_Reply_Not_Found",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "DT_Check_Bound_By_Technician": {
-      "main": [
-        []
-      ]
-    },
-    "IF_Already_Bound": {
-      "main": [
-        [],
-        []
-      ]
-    },
-    "DT_Upsert_Line_Map": {
-      "main": [
-        []
-      ]
-    },
-    "DT_Delete_Register_Session": {
-      "main": [
-        []
-      ]
-    },
     "DT_Upsert_Register_Session": {
       "main": [
         [
@@ -3212,14 +1689,14 @@
         ]
       ]
     },
-    "Line_Reply_Report_Created": {
-      "main": [
-        []
-      ]
-    },
     "DT_If_Map_Exists_By_LineUser": {
       "main": [
         [
+          {
+            "node": "DT_Get_Map_By_LineUser",
+            "type": "main",
+            "index": 0
+          },
           {
             "node": "HTTP_Reply_Already_Registered",
             "type": "main",
@@ -3232,7 +1709,12 @@
       "main": [
         [
           {
-            "node": "Switch_Register_Path",
+            "node": "DT_If_Register_Session_Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DT_If_Register_Session_Not_Exists",
             "type": "main",
             "index": 0
           }
@@ -3249,6 +1731,246 @@
           }
         ]
       ]
+    },
+    "DT_If_Technician_Not_Bound": {
+      "main": [
+        [
+          {
+            "node": "DT_Upsert_Line_Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_Upsert_Line_Map": {
+      "main": [
+        [
+          {
+            "node": "DT_Delete_Register_Session",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP_Reply_Register_Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_Delete_Register_Session": {
+      "main": [
+        []
+      ]
+    },
+    "DT_If_Register_Session_Exists": {
+      "main": [
+        [
+          {
+            "node": "Code_Normalize_Identifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_If_Register_Session_Not_Exists": {
+      "main": [
+        [
+          {
+            "node": "Switch_Start_Or_Ask",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_Start_Or_Ask": {
+      "main": [
+        [
+          {
+            "node": "DT_Upsert_Register_Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Ask_Register",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_Match_Status": {
+      "main": [
+        [
+          {
+            "node": "DT_If_Technician_Already_Bound",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DT_If_Technician_Not_Bound",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Ambiguous_Technician",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Not_Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DT_Get_Map_By_LineUser": {
+      "main": [
+        [
+          {
+            "node": "Switch_Main_Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_Main_Command": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Search_My_Requests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Search_My_Open_Requests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Search_My_OnHold_Requests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Search_My_Today_Requests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP_Reply_Main_Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Search_My_Requests": {
+      "main": [
+        [
+          {
+            "node": "Code_Summarize_My_Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Summarize_My_Requests": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_My_Requests_Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Search_My_Open_Requests": {
+      "main": [
+        [
+          {
+            "node": "Code_Format_Request_List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Format_Request_List": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_Request_List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Search_My_OnHold_Requests": {
+      "main": [
+        [
+          {
+            "node": "Code_Format_Request_List1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Format_Request_List1": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_Request_List2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP_Search_My_Today_Requests": {
+      "main": [
+        [
+          {
+            "node": "Code_Format_Request_List2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Format_Request_List2": {
+      "main": [
+        [
+          {
+            "node": "HTTP_Reply_Request_List1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -3256,11 +1978,11 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "dba06bd9-6ee1-475c-85c6-21813f85049b",
+  "versionId": "bec8e8e9-b2b4-463d-8a33-45dd444bb47e",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "688ff6b74e52f96e06a9d3424e117528bd16442e2547584a376a83878cec4205"
+    "instanceId": "86a0a6e1214acfa943ba7e03c4e57928b3ae7b1f547f0c65038243dbf147c480"
   },
-  "id": "6rybzvJIqmq95Ty2",
+  "id": "IEhWHSGBt6cK7GoE",
   "tags": []
 }
