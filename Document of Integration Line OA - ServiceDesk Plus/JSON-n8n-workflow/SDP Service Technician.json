@@ -218,7 +218,7 @@
     },
     {
       "parameters": {
-        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "url": "https://win-meserv.ppbk.co.th/api/v3/requests",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -241,7 +241,7 @@
           "parameters": [
             {
               "name": "input_data",
-              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 100,\n    start_index: 1,\n    get_total_count: true\n  }\n})\n}}"
             }
           ]
         },
@@ -352,7 +352,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n0001,Administrator\"\n      }\n    ]\n  })\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -708,11 +708,12 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -608,
+        -576,
         4288
       ],
       "id": "0a685d56-a489-43cd-9a92-9b40e5e08fb5",
-      "name": "DT_If_Map_Not_Exists_By_LineUser"
+      "name": "DT_If_Map_Not_Exists_By_LineUser",
+      "notes": "ถ้าไม่มีข้อมูล Line ID User ที่ส่งข้อความเข้ามา"
     },
     {
       "parameters": {
@@ -1050,8 +1051,19 @@
         "operation": "get",
         "dataTableId": {
           "__rl": true,
+          "value": "IbL8fTxOExtKpQBR",
           "mode": "list",
-          "value": ""
+          "cachedResultName": "line_technician_map",
+          "cachedResultUrl": "/projects/hmeYCYcySuscpLCH/datatables/IbL8fTxOExtKpQBR"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_user_id",
+              "keyValue": "={{ $('Code_Parse_Line_Event').item.json.lineUserId }}"
+            }
+          ]
         }
       },
       "type": "n8n-nodes-base.dataTable",
@@ -1061,8 +1073,7 @@
         5488
       ],
       "id": "971c989c-f831-4ced-8397-8e2efa450d4f",
-      "name": "DT_Get_Map_By_LineUser",
-      "disabled": true
+      "name": "DT_Get_Map_By_LineUser"
     },
     {
       "parameters": {
@@ -1078,8 +1089,8 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "",
-                    "rightValue": "",
+                    "leftValue": "={{ $('Code_Parse_Line_Event').item.json.text }}",
+                    "rightValue": "งานของฉัน",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
@@ -1101,8 +1112,8 @@
                 "conditions": [
                   {
                     "id": "5aae4618-6223-4ae9-9f81-05451a9887d6",
-                    "leftValue": "",
-                    "rightValue": "",
+                    "leftValue": "={{ $('Code_Parse_Line_Event').item.json.text }}",
+                    "rightValue": "งาน open",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1124,8 +1135,8 @@
                 "conditions": [
                   {
                     "id": "c9cfb005-f4fc-45c3-ad57-0359aef0e2a8",
-                    "leftValue": "",
-                    "rightValue": "",
+                    "leftValue": "={{ $('Code_Parse_Line_Event').item.json.text }}",
+                    "rightValue": "งาน on hold",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1147,31 +1158,8 @@
                 "conditions": [
                   {
                     "id": "e043152d-441a-4fba-a185-59b5bbe85c7a",
-                    "leftValue": "",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "a13f28bb-6289-4a5c-9c9e-c1307f168cfe",
-                    "leftValue": "",
-                    "rightValue": "",
+                    "leftValue": "={{ $('Code_Parse_Line_Event').item.json.text }}",
+                    "rightValue": "งานวันนี้",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1184,7 +1172,9 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "fallbackOutput": "extra"
+        }
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
@@ -1193,12 +1183,11 @@
         5440
       ],
       "id": "494b1f33-5403-4d3c-a12d-97c4a74b6413",
-      "name": "Switch_Main_Command",
-      "disabled": true
+      "name": "Switch_Main_Command"
     },
     {
       "parameters": {
-        "url": "https://win-meserv.ppbk.co.th:443/api/v3/technicians",
+        "url": "https://win-meserv.ppbk.co.th/api/v3/requests",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -1221,7 +1210,7 @@
           "parameters": [
             {
               "name": "input_data",
-              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: 'employee_id',\n        value: $json.employeeIdInput,\n        condition: 'is'\n      }\n    ]\n  }\n})\n}}"
+              "value": "={{\nJSON.stringify({\n  list_info: {\n    row_count: 50,\n    start_index: 1,\n    get_total_count: true,\n    search_criteria: [\n      {\n        field: \"technician.id\",\n        value: $('DT_Get_Map_By_LineUser').first().json.technician_id,\n        condition: \"is\"\n      }\n    ]\n  }\n})\n}}"
             }
           ]
         },
@@ -1241,7 +1230,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+        "jsCode": "const body = $json;\n\n// request list จาก ServiceDesk Plus\nconst requests =\n  body.requests ||\n  body.response?.requests ||\n  body.message_response?.requests ||\n  [];\n\n// technician ที่ผูกกับ LINE user นี้ไว้แล้ว\nconst mapRow = $('DT_Get_Map_By_LineUser').first().json;\n\nconst mappedTechnicianId = String(mapRow.technician_id ?? '').trim();\nconst mappedEmployeeId = String(mapRow.employee_id ?? '').trim();\nconst mappedTechnicianName = String(mapRow.technician_name ?? '').trim();\n\nconst normalize = (s) =>\n  String(s ?? '')\n    .trim()\n    .toLowerCase()\n    .replace(/\\s+/g, ' ');\n\nconst normalizedMappedName = normalize(mappedTechnicianName);\n\n// ฟังก์ชันดึงค่า technician จาก request แต่ละตัว\nfunction extractTechnicianFields(r) {\n  const tech = r.technician ?? {};\n\n  return {\n    technicianId: String(\n      tech.id ??\n      r.technician_id ??\n      ''\n    ).trim(),\n\n    employeeId: String(\n      tech.employee_id ??\n      tech.employeeId ??\n      r.technician_employee_id ??\n      ''\n    ).trim(),\n\n    technicianName: String(\n      tech.name ??\n      tech.display_name ??\n      r.technician_name ??\n      ''\n    ).trim(),\n\n    statusName: String(\n      r.status?.name ??\n      r.status_name ??\n      ''\n    ).trim(),\n\n    priorityName: String(\n      r.priority?.name ??\n      r.priority_name ??\n      ''\n    ).trim(),\n\n    dueRaw:\n      r.due_by_time?.display_value ??\n      r.due_by_time?.value ??\n      r.due_by_time ??\n      null,\n\n    id: r.id ?? '',\n    subject: r.subject ?? '-',\n    requester: r.requester?.name ?? r.requester_name ?? '-'\n  };\n}\n\n// เช็คว่า request นี้เป็นของ technician คนนี้ไหม\nfunction isMyRequest(item) {\n  const byId =\n    mappedTechnicianId &&\n    item.technicianId &&\n    item.technicianId === mappedTechnicianId;\n\n  const byEmployeeId =\n    mappedEmployeeId &&\n    item.employeeId &&\n    item.employeeId === mappedEmployeeId;\n\n  const byName =\n    normalizedMappedName &&\n    item.technicianName &&\n    normalize(item.technicianName) === normalizedMappedName;\n\n  return byId || byEmployeeId || byName;\n}\n\nconst now = new Date();\nconst todayStr = now.toISOString().slice(0, 10);\n\n// แปลงและกรองเฉพาะงานของ technician คนนี้\nconst parsedAll = requests.map(extractTechnicianFields);\n\nconst parsed = parsedAll\n  .filter(isMyRequest)\n  .map((x) => {\n    let dueDateObj = null;\n\n    if (x.dueRaw) {\n      const d = new Date(x.dueRaw);\n      if (!Number.isNaN(d.getTime())) {\n        dueDateObj = d;\n      }\n    }\n\n    const isOverdue = dueDateObj ? dueDateObj < now : false;\n    const isTodayDue = dueDateObj\n      ? dueDateObj.toISOString().slice(0, 10) === todayStr\n      : false;\n\n    return {\n      ...x,\n      isOverdue,\n      isTodayDue\n    };\n  });\n\n// นับจำนวนหลังจากกรองแล้วเท่านั้น\nconst openCount = parsed.filter(x => normalize(x.statusName) === 'open').length;\nconst onHoldCount = parsed.filter(x => normalize(x.statusName) === 'on hold').length;\nconst overdueCount = parsed.filter(x => x.isOverdue).length;\nconst todayDueCount = parsed.filter(x => x.isTodayDue).length;\n\n// เรียงงานสำคัญ\nconst score = (x) => {\n  let s = 0;\n  if (x.isOverdue) s += 100;\n  if (normalize(x.priorityName) === 'high') s += 50;\n  if (normalize(x.priorityName) === 'medium') s += 20;\n  if (x.isTodayDue) s += 10;\n  return s;\n};\n\nconst topItems = [...parsed]\n  .sort((a, b) => score(b) - score(a))\n  .slice(0, 3);\n\nreturn [{\n  json: {\n    ...mapRow,\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n\n    totalRequestsFromAPI: requests.length,\n    totalMatchedRequests: parsed.length,\n\n    openCount,\n    onHoldCount,\n    overdueCount,\n    todayDueCount,\n    topItems,\n\n    // debug ไว้เช็คตอนทดสอบ\n    debugMappedTechnician: {\n      technician_id: mappedTechnicianId,\n      employee_id: mappedEmployeeId,\n      technician_name: mappedTechnicianName\n    },\n    debugMatchedRequestIds: parsed.map(x => x.id)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1261,7 +1250,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"ไม่พบ technician ที่ตรงกับ employee id และชื่อที่ส่งมา\\nกรุณาตรวจสอบแล้วส่งใหม่ในรูปแบบ employee id,ชื่อ\\n\\nตัวอย่าง:\\n009,Administrator\"\n      }\n    ]\n  })\n}}",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"งานของคุณ\" +\n              \"\\n\\nOpen: \" + $json.openCount + \n              \"\\nOn Hold: \" + $json.onHoldCount + \n              \"\\nOverdue: \" + $json.overdueCount + \n              \"\\nToday Due:\" + $json.todayDueCount\n      }\n    ]\n  })\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -1574,6 +1563,138 @@
       "typeVersion": 1,
       "id": "706547a7-dc1e-4b8a-a972-99e32537ca79",
       "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Check ID in table technician map\nถ้าไม่มีข้อมูล Line ID User ที่ส่งข้อความเข้ามา",
+        "height": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -640,
+        4160
+      ],
+      "typeVersion": 1,
+      "id": "2236f1f8-0a51-40ab-ae95-d270d0b74603",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Check ID in table technician map\nถ้ามีข้อมูล Line ID User ที่ส่งข้อความเข้ามา",
+        "height": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        4928
+      ],
+      "typeVersion": 1,
+      "id": "806d4626-4db0-4725-9ef6-1e79e324b258",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"อยู่ระหว่างการทดสอบ\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        960,
+        5264
+      ],
+      "id": "ee855c01-d362-4e7a-bed2-e9cd25251f66",
+      "name": "Reply_Develop",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"อยู่ระหว่างการทดสอบ\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        960,
+        5440
+      ],
+      "id": "04c8fb4c-769d-4460-abd9-1ac68e982f28",
+      "name": "Reply_Develop1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"อยู่ระหว่างการทดสอบ\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        960,
+        5632
+      ],
+      "id": "fa89420e-4492-4f1f-b705-81b9087baae8",
+      "name": "Reply_Develop2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    replyToken: $('Code_Parse_Line_Event').item.json.replyToken,\n    messages: [\n      {\n        type: \"text\",\n        text: \"อยู่ระหว่างการทดสอบ\"\n      }\n    ]\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        960,
+        5840
+      ],
+      "id": "fbb9da76-95d4-4385-a017-898a7a220a56",
+      "name": "Reply_Develop3",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YscU366hdUcuxREf",
+          "name": "Line Technician"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -1859,6 +1980,16 @@
             "node": "HTTP_Search_My_Open_Requests",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Reply_Develop",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reply_Develop1",
+            "type": "main",
+            "index": 0
           }
         ],
         [
@@ -1873,11 +2004,21 @@
             "node": "HTTP_Search_My_Today_Requests",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Reply_Develop2",
+            "type": "main",
+            "index": 0
           }
         ],
         [
           {
             "node": "HTTP_Reply_Main_Menu",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reply_Develop3",
             "type": "main",
             "index": 0
           }
@@ -1978,7 +2119,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "bec8e8e9-b2b4-463d-8a33-45dd444bb47e",
+  "versionId": "498f2e17-0aa0-4592-9fd2-6f35a45314e1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "86a0a6e1214acfa943ba7e03c4e57928b3ae7b1f547f0c65038243dbf147c480"
